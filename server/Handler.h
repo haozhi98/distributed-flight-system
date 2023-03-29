@@ -5,6 +5,7 @@
 #include "udp_server.h"
 #include "utils.h"
 #include "AccountManager.h"
+#include "FlightSystem.h"
 #include "constants.h"
 #include <chrono>
 #include <deque>
@@ -18,6 +19,10 @@ class Handler{
     deque<Admin> admins;
     AccountManager acManager;
     map<pair<unsigned long,int>,string> memo;
+
+    map<pair<unsigned long, int>, string> responses;
+
+    FlightSystem flightSystem;
     
     int response_id;
     int limit;
@@ -30,7 +35,9 @@ class Handler{
     void ackHandler(udp_server &server, char *header, char *response, int responseSize, int responseID, int status, unsigned long cAddress);
     int getResponseID();
     void notify(udp_server &server, string s, int status);
-    int getS1AccNum(char *response);
+
+    void queryPlace(udp_server &server, char *p, int req_id, int status);
+    void queryFlightId(udp_server &server, char *p, int req_id, int status);
     void service1(udp_server &server, char *p, int req_id, int status);
     void service2(udp_server &server, char *p, int req_id, int status);
     void service3(udp_server &server, char *p, int req_id, int status);

@@ -339,6 +339,7 @@ class UDPClient
 
             while(!exit){
                 System.out.println(Constants.SELECTION_SVC_MSG);
+                System.out.println(Constants.QUERY_PLACE_MSG);
                 System.out.println(Constants.OPEN_ACCOUNT_SVC_MSG);
                 System.out.println(Constants.CLOSE_ACCOUNT_SVC_MSG);
                 System.out.println(Constants.DEPOSIT_MONEY_SVC_MSG);
@@ -357,6 +358,19 @@ class UDPClient
                 byte[] packageByte;
                 int curID = udpClient.getID();
                 switch(serviceType){
+                    case Constants.QUERY_PLACE:
+                        try {
+                            packageByte = QueryPlace.createMessage(scanner, curID);
+                            if (packageByte.length > 0) {
+                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                                QueryPlace.handleResponse(response, debug);
+                            }
+                        } catch (Exception e) {
+                            System.out.print(Constants.SEPARATOR);
+                            System.out.printf(Constants.ERR_MSG, e.getMessage());
+                            if (debug) throw(e);
+                        }
+                        break;
                     case Constants.SERVICE_OPEN_ACCOUNT:
                         try{
                             packageByte = HandleOpenAccount.createMessage(scanner, curID);

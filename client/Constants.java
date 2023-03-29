@@ -32,6 +32,8 @@ class Constants{
     public static final int FLOAT_SIZE = 4;
 
     // Service constant
+    public static final int QUERY_PLACE = 0;
+
     public static final int SERVICE_OPEN_ACCOUNT = 1;
     public static final int SERVICE_CLOSE_ACCOUNT = 2;
     public static final int SERVICE_DEPOSIT_MONEY = 3;
@@ -60,6 +62,7 @@ class Constants{
     public static final String WELCOME_MSG = "Welcome to CACAD banking system";
     public static final String EXIT_MSG = "Thank you for using CACAD banking system!";
     public static final String SELECTION_SVC_MSG = "Select the service you want to do:";
+    public static final String QUERY_PLACE_MSG = "0. Query flight ID by place.";
     public static final String OPEN_ACCOUNT_SVC_MSG = "1. Open new account.";
     public static final String CLOSE_ACCOUNT_SVC_MSG = "2. Close existing account.";
     public static final String DEPOSIT_MONEY_SVC_MSG = "3. Deposit money.";
@@ -71,7 +74,11 @@ class Constants{
     public static final String CHOICE_SVC_MSG = "Your choice: ";
     public static final String UNRECOGNIZE_SVC_MSG = "Sorry we cannot recognize your service choice!";
 
+    public static final String QUERY_SOURCE_PLACE = "Enter your source place: ";
+
     // Open Account UI Constant
+
+
     public static final String OPEN_MSG = "Opening new account!";
     public static final String OPEN_NAME_MSG = "Enter your name: ";
     public static final String OPEN_PASSWORD_MSG = "Enter your password: ";
@@ -135,7 +142,7 @@ class Constants{
     public static final String MONITORING_FINISH_MSG = "Monitoring Update Finished";
 
     // Confirmation UI Constant
-    public static final String CONFIRM_SUMMARY = "Summary:";
+    public static final String CONFIRM_SUMMARY = "Summary:\n";
     public static final String CONFIRM_NAME = "Name: %s\n";
     public static final String CONFIRM_REC_NAME = "Name: %s\n";
     public static final String CONFIRM_PASSWORD = "Password: %s\n";

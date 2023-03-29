@@ -1,7 +1,9 @@
 #include "Handler.h"
+#include "Flight.h"
 
 Handler::Handler(int _limit, double _failureRate){
     acManager = AccountManager();
+    flightSystem = FlightSystem();
     response_id = 0;
     limit = _limit;
 
@@ -11,16 +13,12 @@ Handler::Handler(int _limit, double _failureRate){
     failureRate = _failureRate;
 }
 
-/**
-   Increments response ID
- */
+// Increments response ID
 int Handler::getResponseID(){
     return response_id++;
 }
 
-/**
-   Sends response under certain failure rate
- */
+// Sends response under certain failure rate
 void Handler::sendReply(udp_server &server, char *header, char *response, int responseSize){   
     if(distribution(generator) > failureRate){
         server.send(header,HEADER_SIZE);
@@ -30,10 +28,9 @@ void Handler::sendReply(udp_server &server, char *header, char *response, int re
     else cout << "################################Failure simulated#####################################\n";
 }
 
-/**
-   Notifies monitoring users by sending notification string 
- */
+//Notifies monitoring users by sending notification string 
 void Handler::notify(udp_server &server, string notif, int status){
+    cout << "in notify" << endl;
     if((int)admins.size() == 0) return;
     
     char header[HEADER_SIZE];
@@ -122,15 +119,13 @@ void Handler::notify(udp_server &server, string notif, int status){
     }
 }
 
-/**
-   Repeatedly listens for incoming ack and resends response each timeout
- */
+// Repeatedly listens for incoming ack and resends response each timeout
 void Handler::ackHandler(udp_server &server, char *header, char *response, int responseSize, int responseID, int status, unsigned long cAddress){
     char ackHeader[HEADER_SIZE];
 
     for(int i=1; i!=limit+1; i++){
 
-        cout << "WAITING FOR ACK HEADER\n";
+        cout << "WAITING FOR ACK HEADER (ack handler 1)\n";
         int n = server.receive_time(ackHeader,HEADER_SIZE,RECEIVE_TIMEOUT);
 
         if(n <= 0){
@@ -170,10 +165,8 @@ void Handler::ackHandler(udp_server &server, char *header, char *response, int r
     }
 }
 
-/**
-   Checks whether message is a duplicate based on req_id
-   and if so, sends the old response
- */
+// Checks whether message is a duplicate based on req_id and if so, sends the old response
+
 bool Handler::checkAndSendOldResponse(udp_server &server, unsigned long cAddress, int req_id){
     if(!memo.count({cAddress,req_id})) return false;
     char header[HEADER_SIZE];
@@ -191,14 +184,140 @@ bool Handler::checkAndSendOldResponse(udp_server &server, unsigned long cAddress
     cout << "Old response of size " << size << " is sent back\n";
     cout << "??????Status byte is: " << (int)*(response+ID_SIZE) << '\n';
     cout << "??????Status byte iz: " << (int)str[ID_SIZE] << '\n';
-    //cout << "Account number sent is " << getS1AccNum(response) << "\n";
     return true;
 }
 
-int Handler::getS1AccNum(char *response){
-    char *c = response;
-    c += ID_SIZE + STATUS_SIZE + INT_SIZE;
-    return utils::unmarshalInt(c);
+void Handler::queryPlace(udp_server &server, char *p, int req_id, int status){
+    cout << "################################ Query by Place #####################################\n";
+
+    unsigned long clientAddress = server.getClientAddress().sin_addr.s_addr;
+
+    if(status == 2 && checkAndSendOldResponse(server,clientAddress,req_id))
+        return;
+
+    string source, destination;
+
+    int length = utils::unmarshalInt(p);
+    p += INT_SIZE;
+    source = utils::unmarshalString(p, length);
+    p += length;
+
+    length = utils::unmarshalInt(p);
+    p += INT_SIZE;
+    destination = utils::unmarshalString(p, length);
+    p += length;
+
+    vector<int> flightIds = flightSystem.queryByPlace(source, destination);
+    cout << "Found " << flightIds.size() << " flight(s) with given source and destination places\n";
+
+    // header indicates size of response
+    char header[HEADER_SIZE];
+    int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*(1+flightIds.size());
+    utils::marshalInt(responseSize,header);
+
+    // response
+    char response[responseSize];
+    char *cur = response;
+
+    // responseId
+    int responseID = getResponseID();
+    utils::marshalInt(responseID,cur);
+    cur += ID_SIZE;
+
+    // status
+    utils::marshalString(ACK,cur);
+    cur += STATUS_SIZE;
+
+    // number of flights
+    utils::marshalInt(flightIds.size(),cur);
+    cur += INT_SIZE;
+
+    // array of flight id
+    for (auto& flightId: flightIds) {
+        cout << "flight ID " << flightId << endl;
+        utils::marshalInt(flightId,cur);
+    }
+
+    cout << "!!!!!!!Saving response with status byte " << (int)*(response+ID_SIZE) << " into memory!!!!!!!!!\n";
+
+    if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
+
+    sendReply(server,header,response,responseSize);
+    
+    if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
+    
+    notify(server,"Found " + to_string(flightIds.size()) + " flights with source place from: " + source + ", to destination place:  " + destination, status);
+}
+
+void Handler::queryFlightId(udp_server &server, char *p, int req_id, int status){
+    cout << "################################ Query by Flight ID #####################################\n";
+
+    unsigned long clientAddress = server.getClientAddress().sin_addr.s_addr;
+
+    if(status == 2 && checkAndSendOldResponse(server,clientAddress,req_id))
+        return;
+
+    int flightId;
+
+    int length = utils::unmarshalInt(p);
+    p += INT_SIZE;
+    flightId = utils::unmarshalInt(p);
+    p += length;
+
+    vector<Flight> flight = flightSystem.queryByFlightId(flightId);
+
+    // header indicates size of response
+    char header[HEADER_SIZE];
+    int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*2);
+    utils::marshalInt(responseSize,header);
+
+    // response
+    char response[responseSize];
+    char *cur = response;
+
+    // responseId
+    int responseID = getResponseID();
+    utils::marshalInt(responseID,cur);
+    cur += ID_SIZE;
+
+    // status
+    utils::marshalString(ACK,cur);
+    cur += STATUS_SIZE;
+
+    // is flight found
+    if (flight.size() > 0) {
+        cout << "Found flight: " << flight[0].getFlightId() << endl;
+        utils::marshalInt(3,cur);
+        cur += INT_SIZE;
+
+        // flight time
+        // utils::marshalInt(flightId[0].getFlightTime(),cur);
+        // cur += UNIX_TIME_SIZE;
+
+        // airfare
+        utils::marshalFloat(flight[0].getAirFare(),cur);
+        cur += FLOAT_SIZE;
+
+        // seat availability
+        utils::marshalInt(flight[0].getSeatsAvailable(),cur);
+
+    } else {
+        utils::marshalInt(0,cur);
+        cur += INT_SIZE;
+    }
+    
+
+    
+
+    cout << "!!!!!!!Saving response with status byte " << (int)*(response+ID_SIZE) << " into memory!!!!!!!!!\n";
+
+    if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
+
+    sendReply(server,header,response,responseSize);
+    
+    if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
+    
+    notify(server,"Found " + to_string(flightIds.size()) + " flights with source place from: " + source + ", to destination place:  " + destination, status);
 }
 
 /**

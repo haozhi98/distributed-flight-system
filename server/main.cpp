@@ -17,7 +17,7 @@ int limit;
    Handles incoming request from client
  */
 void handleRequest(udp_server &server, Handler &handler){
-    cout << "WAITING\n";
+    cout << "WAITING!\n";
     int n = server.receive_time(header,HEADER_SIZE,INF);
 
     if(n <= 0){
@@ -47,6 +47,9 @@ void handleRequest(udp_server &server, Handler &handler){
     cur+=INT_SIZE;
 
     switch(type){
+    case 0:
+        handler.queryPlace(server,cur,req_id,status);
+        break;
     case 1:
         handler.service1(server,cur,req_id,status);
         break;
@@ -72,22 +75,18 @@ void handleRequest(udp_server &server, Handler &handler){
 }
 
 int main(int argc, char **argv){
-    /*
-      <program> <port> <status> <failure> <limit>
-     */
-
     if (argc < 2) portno = 8080;
     else portno = atoi(argv[1]);
 
     status = 2;
         
-    if(argc >= 3) status = atoi(argv[2]);
+    // if(argc >= 3) status = atoi(argv[2]);
 
     failureRate = 0;
-    if(argc >= 4) failureRate = (double)(atoi(argv[3])) / (double)100.0;
+    // if(argc >= 4) failureRate = (double)(atoi(argv[3])) / (double)100.0;
 
     limit = -1;
-    if(argc >= 5) limit = atoi(argv[4]);
+    // if(argc >= 5) limit = atoi(argv[4]);
 
     udp_server server(portno);
     Handler handler(limit, failureRate);

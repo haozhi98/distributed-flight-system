@@ -1,0 +1,10 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "client/lib/commons-cli-1.4.jar"
+    ],
+    "files.associations": {
+        "utility": "cpp",
+        "unordered_map": "cpp"
+    }
+}

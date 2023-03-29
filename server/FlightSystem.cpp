@@ -1,0 +1,175 @@
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include "FlightSystem.h"
+
+FlightSystem::FlightSystem(){
+    newFlightId = 0;
+    flights.clear();
+    bookings.clear();
+    monitorQueue.clear();
+    ReadFlights();
+}
+
+void FlightSystem::ReadFlights(){
+    string fileName = "flights.csv";
+    vector<vector<string>> data;
+    vector<string> row;
+    string line, word;
+
+    fstream file (fileName, ios::in);
+    if (file.is_open()) {
+        while (getline(file, line)) {
+            row.clear();
+            stringstream str(line);
+
+            while (getline(str, word, ',')) row.push_back(word);
+
+            data.push_back(row);
+        }
+    } else {
+        cout << "Error in opening flights data file" << endl;
+        return;
+    }
+
+    for (auto& item: data) {
+        if (item.size() == 4) {
+            cout << addFlight(item[0], item[1], stoi(item[2]), stof(item[3])) << " ";
+        }
+        for (auto& i: item) cout << i << " ";
+        cout << endl;
+    }
+}
+
+int FlightSystem::addFlight(string source_, string destination_, int seatsAvailable_, float airfare_){
+    int flightId_ = newFlightId++;
+     
+	flights[flightId_] = Flight(flightId_, source_, destination_, seatsAvailable_, airfare_);    
+	return flightId_;
+}
+
+vector<int> FlightSystem::queryByPlace(string source, string destination){
+    vector<int> res;
+    for (auto& item: flights) {
+        // filter by source and destination
+        if (item.second.getSource() == source && item.second.getDestination() == destination) {
+            // add flightId to return array
+            res.push_back(item.first);
+        }
+    }
+    return res;
+}
+
+vector<pair<int,int>> FlightSystem::queryBookings(int userId){
+    vector<pair<int,int>> res;
+    
+    if (bookings.find(userId) != bookings.end()) {
+        for (auto& item: bookings[userId]) {
+            res.push_back(make_pair(item.first, item.second));
+        }
+    }
+    return res;
+}
+
+vector<Flight> FlightSystem::queryByFlightId(int flightId){
+    vector<Flight> res;
+    if (flights.find(flightId) != flights.end()) {
+        res.push_back(flights[flightId]);
+    }
+    return res;
+}
+
+bool FlightSystem::createBooking(int userId, int flightId, int seats){
+    int availableSeats = 0;
+
+    // check if flight exists
+    if (flights.find(flightId) != flights.end()) {
+        availableSeats = flights[flightId].getSeatsAvailable();
+    }
+
+    // make the booking and update seats in flights if sufficient seats available
+    if (flights[flightId].subtractSeats(seats)) {
+
+        // user has existing booking
+        if (bookings.find(userId) != bookings.end()) {
+            if (bookings[userId].find(flightId) != bookings[userId].end()) {
+                bookings[userId][flightId] += seats;
+            }
+            else {
+                bookings[userId][flightId] = seats;
+            }
+        }
+        // user has not made booking
+        else {
+            bookings[userId] = map<int, int> {{flightId, seats}};
+        }
+
+        callUpdateService(flightId);
+
+        return true;
+    }
+    return false;
+}
+
+bool FlightSystem::cancelBooking(int userId, int flightId){
+    if (bookings.find(userId) != bookings.end()) {
+        if (bookings[userId].find(flightId) != bookings[userId].end()) {
+            int seats = bookings[userId][flightId];
+            flights[flightId].addSeats(seats);
+
+            // remove booking from bookings
+            bookings[userId].erase(flightId);
+
+            callUpdateService(flightId);
+
+            return true;
+        }
+    }
+    return false;
+}
+
+bool FlightSystem::registerUpdateService(int userId, int flightId, int monitorInterval){
+    if (flights.find(flightId) == flights.end()) return false;
+    
+    deque<pair<time_t,int>> monitoredFlights;
+    if (monitorQueue.find(flightId) != monitorQueue.end()) {
+        monitoredFlights = monitorQueue[flightId];
+    }
+
+    time_t curTime = time(nullptr);
+    
+    // remove monitored flights that have expired
+    while (!monitoredFlights.empty() && monitoredFlights.front().first < curTime) {
+        monitoredFlights.pop_front();
+    }
+    
+    time_t expiryTime = curTime + monitorInterval;
+
+    monitoredFlights.push_back(make_pair(expiryTime, userId));
+    monitorQueue[userId] = monitoredFlights;
+
+    return true;
+}
+
+vector<int> FlightSystem::callUpdateService(int flightId){
+    vector<int> userIds;
+    deque<pair<time_t,int>> monitoredFlights;
+
+    if (monitorQueue.find(flightId) != monitorQueue.end()) {
+        monitoredFlights = monitorQueue[flightId];
+    }
+
+    time_t curTime = time(nullptr);
+    
+    // remove monitored flights that have expired
+    while (!monitoredFlights.empty() && monitoredFlights.front().first < curTime) {
+        monitoredFlights.pop_front();
+    }
+
+    for (auto& item: monitoredFlights) {
+        userIds.push_back(item.second);
+    }
+
+    return userIds;
+
+}
