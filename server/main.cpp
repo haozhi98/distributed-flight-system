@@ -51,8 +51,11 @@ void handleRequest(udp_server &server, Handler &handler){
         handler.queryPlace(server,cur,req_id,status);
         break;
     case 1:
-        handler.service1(server,cur,req_id,status);
+        handler.queryFlightId(server, cur, req_id, status);
         break;
+    // case 1:
+    //     handler.service1(server,cur,req_id,status);
+    //     break;
     case 2:
         handler.service2(server,cur,req_id,status);
         break;

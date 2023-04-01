@@ -33,7 +33,7 @@ class QueryPlace{
         System.out.println(Constants.SEPARATOR);
         System.out.println(Constants.CONFIRM_SUMMARY);
         System.out.printf("Source Place: %s\n", sourcePlace);
-        System.out.printf("Source Place: %s\n", destinationPlace);
+        System.out.printf("Destination Place: %s\n", destinationPlace);
         System.out.println(Constants.CONFIRM_MSG);
         String confirm = scanner.nextLine();
 

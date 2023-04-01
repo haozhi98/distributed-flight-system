@@ -33,8 +33,9 @@ class Constants{
 
     // Service constant
     public static final int QUERY_PLACE = 0;
+    public static final int QUERY_FLIGHT_ID = 1;
 
-    public static final int SERVICE_OPEN_ACCOUNT = 1;
+    // public static final int SERVICE_OPEN_ACCOUNT = 1;
     public static final int SERVICE_CLOSE_ACCOUNT = 2;
     public static final int SERVICE_DEPOSIT_MONEY = 3;
     public static final int SERVICE_WITHDRAW_MONEY = 4;

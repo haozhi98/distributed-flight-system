@@ -33,25 +33,31 @@ void FlightSystem::ReadFlights(){
     }
 
     for (auto& item: data) {
-        if (item.size() == 4) {
-            cout << addFlight(item[0], item[1], stoi(item[2]), stof(item[3])) << " ";
+        if (item.size() == 5) {
+            cout << addFlight(item[0], item[1], stoi(item[2]), stof(item[3]), stoi(item[4])) << " ";
         }
         for (auto& i: item) cout << i << " ";
         cout << endl;
     }
 }
 
-int FlightSystem::addFlight(string source_, string destination_, int seatsAvailable_, float airfare_){
-    int flightId_ = newFlightId++;
+int FlightSystem::addFlight(string source, string destination, int seatsAvailable, float airfare, int flightTime){
+    int flightId = newFlightId++;
      
-	flights[flightId_] = Flight(flightId_, source_, destination_, seatsAvailable_, airfare_);    
-	return flightId_;
+	flights[flightId] = Flight(flightId, source, destination, seatsAvailable, airfare, flightTime);    
+	return flightId;
 }
 
 vector<int> FlightSystem::queryByPlace(string source, string destination){
     vector<int> res;
+    cout << source << endl;
+    cout << destination << endl;
+    cout << flights.size() << endl;
     for (auto& item: flights) {
         // filter by source and destination
+        cout << item.second.getSource() << endl;
+        cout << item.second.getDestination() << endl;
+        
         if (item.second.getSource() == source && item.second.getDestination() == destination) {
             // add flightId to return array
             res.push_back(item.first);
@@ -73,7 +79,9 @@ vector<pair<int,int>> FlightSystem::queryBookings(int userId){
 
 vector<Flight> FlightSystem::queryByFlightId(int flightId){
     vector<Flight> res;
+    cout << flightId << endl;
     if (flights.find(flightId) != flights.end()) {
+        cout << "Found flight" << endl;
         res.push_back(flights[flightId]);
     }
     return res;

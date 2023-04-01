@@ -115,7 +115,7 @@ class HandleOpenAccount{
         List message = new ArrayList();
 
         Utils.append(message, id);
-        Utils.append(message, Constants.SERVICE_OPEN_ACCOUNT);
+        // Utils.append(message, Constants.SERVICE_OPEN_ACCOUNT);
         Utils.appendMessage(message, name);
         Utils.appendMessage(message, password);
         Utils.appendMessage(message, currency);

@@ -268,7 +268,7 @@ void Handler::queryFlightId(udp_server &server, char *p, int req_id, int status)
 
     // header indicates size of response
     char header[HEADER_SIZE];
-    int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*2);
+    int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*(1+flight.size()*3)+FLOAT_SIZE;
     utils::marshalInt(responseSize,header);
 
     // response
@@ -287,12 +287,16 @@ void Handler::queryFlightId(udp_server &server, char *p, int req_id, int status)
     // is flight found
     if (flight.size() > 0) {
         cout << "Found flight: " << flight[0].getFlightId() << endl;
-        utils::marshalInt(3,cur);
+        utils::marshalInt(1,cur);
+        cur += INT_SIZE;
+
+        // flight ID
+        utils::marshalInt(flight[0].getFlightId(), cur);
         cur += INT_SIZE;
 
         // flight time
-        // utils::marshalInt(flightId[0].getFlightTime(),cur);
-        // cur += UNIX_TIME_SIZE;
+        utils::marshalInt(flight[0].getFlightTime(),cur);
+        cur += INT_SIZE;
 
         // airfare
         utils::marshalFloat(flight[0].getAirFare(),cur);
@@ -306,9 +310,6 @@ void Handler::queryFlightId(udp_server &server, char *p, int req_id, int status)
         cur += INT_SIZE;
     }
     
-
-    
-
     cout << "!!!!!!!Saving response with status byte " << (int)*(response+ID_SIZE) << " into memory!!!!!!!!!\n";
 
     if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
@@ -316,8 +317,10 @@ void Handler::queryFlightId(udp_server &server, char *p, int req_id, int status)
     sendReply(server,header,response,responseSize);
     
     if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
+
+    if (flight.size() > 0) notify(server,"Found flight: " + to_string(flightId) + "\nFlight Time: " + to_string(flight[0].getFlightTime()) + "\nAirfare:  " + to_string(flight[0].getAirFare()) + "\n Seats Available: " + to_string(flight[0].getSeatsAvailable()) , status);
+    else notify(server, "Not flight found with flight ID: " + to_string(flightId), status);
     
-    notify(server,"Found " + to_string(flightIds.size()) + " flights with source place from: " + source + ", to destination place:  " + destination, status);
 }
 
 /**

@@ -19,7 +19,7 @@ private:
 	// map of flightId: queue of <time, userId>
 	map<int, deque<pair<time_t, int>>> monitorQueue;
 public:
-	int addFlight(string source, string destination, int seatsAvailable, float airfare);
+	int addFlight(string source, string destination, int seatsAvailable, float airfare, int flightTime);
 	vector<int> queryByPlace(string source, string destination);
 	vector<pair<int,int>> queryBookings(int userId);
 	bool checkFlightId(int flightId);

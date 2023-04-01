@@ -169,7 +169,7 @@ class UDPClient
 
             if (this.debug) System.out.printf("[DEBUG][UPDClient][RECEIVE RESPONSE: %d]\n", responseID);
             if (this.semInvo >= Constants.AT_MOST_ONE_SEM_INVO && this.handledResponse.containsKey(responseID)){
-                if (this.debug) System.out.printf("[DEBUG][UPDClient][SEND ACK: %d]\n", responseID);
+                if (this.debug) System.out.printf("[DEBUG][UPDClient][SEND ACK: %d][DUPLICATE RESPONSE]\n", responseID);
                 this.sendACK(responseID);
             }else{
                 break;
@@ -177,7 +177,7 @@ class UDPClient
         } while(this.semInvo >= Constants.AT_MOST_ONE_SEM_INVO);
 
         if(this.getSemInvo() >= Constants.AT_MOST_ONE_SEM_INVO || (monitor && this.getSemInvo() >= Constants.AT_LEAST_ONE_SEM_INVO)){
-            if (this.debug) System.out.printf("[DEBUG][UPDClient][SEND ACK: %d]\n", responseID);
+            if (this.debug) System.out.printf("[DEBUG][UPDClient][SEND ACK: %d][NEW RESPONSE]\n", responseID);
             this.sendACK(responseID);
         }
 
@@ -340,7 +340,7 @@ class UDPClient
             while(!exit){
                 System.out.println(Constants.SELECTION_SVC_MSG);
                 System.out.println(Constants.QUERY_PLACE_MSG);
-                System.out.println(Constants.OPEN_ACCOUNT_SVC_MSG);
+                System.out.println("1. Query flight by flight ID.");
                 System.out.println(Constants.CLOSE_ACCOUNT_SVC_MSG);
                 System.out.println(Constants.DEPOSIT_MONEY_SVC_MSG);
                 System.out.println(Constants.WITHDRAW_MONEY_SVC_MSG);
@@ -371,19 +371,32 @@ class UDPClient
                             if (debug) throw(e);
                         }
                         break;
-                    case Constants.SERVICE_OPEN_ACCOUNT:
-                        try{
-                            packageByte = HandleOpenAccount.createMessage(scanner, curID);
-                            if (packageByte.length > 0){
+                    case Constants.QUERY_FLIGHT_ID:
+                        try {
+                            packageByte = QueryFlightId.createMessage(scanner, curID);
+                            if (packageByte.length > 0) {
                                 byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                                HandleOpenAccount.handleResponse(response, debug);
+                                QueryFlightId.handleResponse(response, debug);
                             }
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             System.out.print(Constants.SEPARATOR);
-                            System.out.printf(Constants.ERR_MSG, e.getMessage());
+                            System.out.printf(Constants.ERR_PASSWORD_INPUT, e.getMessage());
                             if (debug) throw(e);
                         }
                         break;
+                    // case Constants.SERVICE_OPEN_ACCOUNT:
+                    //     try{
+                    //         packageByte = HandleOpenAccount.createMessage(scanner, curID);
+                    //         if (packageByte.length > 0){
+                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                    //             HandleOpenAccount.handleResponse(response, debug);
+                    //         }
+                    //     } catch (Exception e){
+                    //         System.out.print(Constants.SEPARATOR);
+                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
+                    //         if (debug) throw(e);
+                    //     }
+                    //     break;
                     case Constants.SERVICE_CLOSE_ACCOUNT:
                         try{
                             packageByte = HandleCloseAccount.createMessage(scanner, curID);
