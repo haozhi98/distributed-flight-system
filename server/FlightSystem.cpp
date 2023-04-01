@@ -119,8 +119,6 @@ pair<int,int> FlightSystem::createBooking(unsigned long userId, int flightId, in
             bookings[userId] = map<int, int> {{flightId, seats}};
         }
 
-        callUpdateService(flightId);
-
         return make_pair(availableSeats,seats);
     }
     return make_pair(availableSeats,0);
@@ -137,8 +135,6 @@ int FlightSystem::cancelBooking(unsigned long userId, int flightId){
         // remove booking from bookings
         bookings[userId].erase(flightId);
 
-        callUpdateService(flightId);
-
         return seats;
     }
     return 0;
@@ -147,7 +143,7 @@ int FlightSystem::cancelBooking(unsigned long userId, int flightId){
 bool FlightSystem::registerUpdateService(unsigned long userId, int flightId, int monitorInterval){
     if (flights.find(flightId) == flights.end()) return false;
     
-    deque<pair<time_t,int>> monitoredFlights;
+    deque<pair<time_t,unsigned long>> monitoredFlights;
     if (monitorQueue.find(flightId) != monitorQueue.end()) {
         monitoredFlights = monitorQueue[flightId];
     }
@@ -162,14 +158,23 @@ bool FlightSystem::registerUpdateService(unsigned long userId, int flightId, int
     time_t expiryTime = curTime + monitorInterval;
 
     monitoredFlights.push_back(make_pair(expiryTime, userId));
-    monitorQueue[userId] = monitoredFlights;
+    monitorQueue[flightId] = monitoredFlights;
+
+    for (auto &flight: monitorQueue) {
+        cout << "Flight id " << flight.first << endl;
+        for (auto & item: flight.second) {
+            cout << "time " << item.first << " userId " << item.second << endl;
+        }
+    }
 
     return true;
 }
 
-vector<int> FlightSystem::callUpdateService(int flightId){
-    vector<int> userIds;
-    deque<pair<time_t,int>> monitoredFlights;
+pair<vector<unsigned long>, int> FlightSystem::callUpdateService(int flightId){
+    cout << "in call update service" << endl;
+    pair<vector<unsigned long>,int> res;
+    vector<unsigned long> userIds;
+    deque<pair<time_t,unsigned long>> monitoredFlights;
 
     if (monitorQueue.find(flightId) != monitorQueue.end()) {
         monitoredFlights = monitorQueue[flightId];
@@ -183,9 +188,10 @@ vector<int> FlightSystem::callUpdateService(int flightId){
     }
 
     for (auto& item: monitoredFlights) {
+        cout << "user id " << item.second << endl;
         userIds.push_back(item.second);
     }
 
-    return userIds;
+    return make_pair(userIds,flights[flightId].getSeatsAvailable());
 
 }

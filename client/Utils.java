@@ -46,6 +46,10 @@ class Utils{
         return Utils.unmarshalInteger(b, start+Constants.INT_SIZE);
     }
 
+    public static boolean unmarshalBool(byte[] b, int start){
+        return b[start] == 1;
+    }
+
     public static byte[] marshal(float f){
         return ByteBuffer.allocate(Constants.FLOAT_SIZE).putFloat(f).array();
     }

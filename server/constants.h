@@ -11,6 +11,7 @@
 #define STATUS_SIZE 1
 #define INT_SIZE 4
 #define FLOAT_SIZE 4
+#define BOOL_SIZE 1
 #define RECEIVE_TIMEOUT 1
 #define INF 1000000
 #endif

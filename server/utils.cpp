@@ -43,3 +43,10 @@ void utils::marshalString(string s, char *b)
     for(int i=0;i<(int)s.size();i++)
         *cur = s[i], cur++;
 }
+
+void utils::marshalBool(bool y, char *b)
+{
+    char *cur = b;
+    *cur = y;
+    cur++;
+}

@@ -69,21 +69,9 @@ void handleRequest(udp_server &server, Handler &handler){
     case 6:
         handler.cancelFlight(server,cur,req_id,status);
         break;
-    // case 3:
-    //     handler.service3(server,cur,req_id,status);
-    //     break;
-    // case 4:
-    //     handler.service4(server,cur,req_id,status);
-    //     break;
-    // case 5:
-    //     handler.service5(server,cur,req_id,status);
-    //     break;
-    // case 6:
-    //     handler.service6(server,cur,req_id,status);
-    //     break;
-    // case 7:
-    //     handler.service7(server,cur,req_id,status);
-    //     break;
+    case 7:
+        handler.registerUpdateService(server,cur,req_id,status);
+        break;
     }
 }
 

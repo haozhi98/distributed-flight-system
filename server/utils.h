@@ -11,6 +11,7 @@ namespace utils{
     void marshalInt(int x, char *b);
     void marshalFloat(float x, char *b);
     void marshalString(string s, char *b);
+    void marshalBool(bool y, char *b);
 }
 
 #endif

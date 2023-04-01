@@ -346,7 +346,6 @@ class UDPClient
                 System.out.println("5. Book a flight.");
                 System.out.println("6. Cancel a flight.");
                 System.out.println("7. Register for flight update service.");
-                System.out.println(Constants.CHANGE_PASSWORD_SVC_MSG);
                 System.out.println(Constants.EXIT_SVC_MSG);
                 System.out.println();
                 System.out.print(Constants.CHOICE_SVC_MSG);
@@ -438,10 +437,18 @@ class UDPClient
                         break;
                     case Constants.REGISTER_UPDATE_SERVICE:
                         try {
-                            packageByte = QueryAllFlights.createMessage(scanner, curID);
+                            packageByte = RegisterUpdateService.createMessage(scanner, curID);
                             if (packageByte.length > 0) {
                                 byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                                QueryAllFlights.handleResponse(response, debug);
+                                int seconds = RegisterUpdateService.handleResponse(response, debug);
+                                udpClient.setTimeout(seconds);
+                                try {
+                                    byte[] updateServiceResponse = udpClient.receive(false);
+                                    RegisterUpdateService.handleUpdateServiceResponse(updateServiceResponse, debug);
+                                } catch (SocketTimeoutException e) {
+                                    System.out.println("Update service has expired!\nDeregistering from the service...\n");
+                                }
+                                udpClient.setTimeout(0);
                             }
                         } catch (Exception e) {
                             System.out.print(Constants.SEPARATOR);
@@ -449,110 +456,6 @@ class UDPClient
                             if (debug) throw(e);
                         }
                         break;
-                    // case Constants.SERVICE_OPEN_ACCOUNT:
-                    //     try{
-                    //         packageByte = HandleOpenAccount.createMessage(scanner, curID);
-                    //         if (packageByte.length > 0){
-                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                    //             HandleOpenAccount.handleResponse(response, debug);
-                    //         }
-                    //     } catch (Exception e){
-                    //         System.out.print(Constants.SEPARATOR);
-                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
-                    //         if (debug) throw(e);
-                    //     }
-                    //     break;
-                    // case Constants.SERVICE_CLOSE_ACCOUNT:
-                    //     try{
-                    //         packageByte = HandleCloseAccount.createMessage(scanner, curID);
-                    //         if (packageByte.length != 0){
-                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                    //             HandleCloseAccount.handleResponse(response, debug);
-                    //         }
-                    //     } catch (Exception e){
-                    //         System.out.print(Constants.SEPARATOR);
-                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
-                    //         if (debug) throw(e);
-                    //     }
-                    //     break;
-                    // case Constants.SERVICE_DEPOSIT_MONEY:
-                    //     try{
-                    //         packageByte = HandleDepositMoney.createMessage(scanner, curID);
-                    //         if (packageByte.length != 0){
-                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                    //             HandleDepositMoney.handleResponse(response, debug);
-                    //         }
-                    //     } catch (Exception e){
-                    //         System.out.print(Constants.SEPARATOR);
-                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
-                    //         if (debug) throw(e);
-                    //     }
-                    //     break;
-                    // case Constants.SERVICE_WITHDRAW_MONEY:
-                    //     try{
-                    //         packageByte = HandleWithdrawMoney.createMessage(scanner, curID);
-                    //         if (packageByte.length != 0){
-                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                    //             HandleWithdrawMoney.handleResponse(response, debug);
-                    //         }
-                    //     } catch (Exception e){
-                    //         System.out.print(Constants.SEPARATOR);
-                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
-                    //         if (debug) throw(e);
-                    //     }
-                    //     break;
-                    // case Constants.SERVICE_MONITOR_UPDATE:
-                    //     int realTimeout = udpClient.getTimeout();
-                    //     try{
-                    //         packageByte = HandleMonitorUpdate.createMessage(scanner, curID);
-                    //         if (packageByte.length != 0){
-                    //             System.out.println(Constants.SEPARATOR);
-                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                    //             int remainingDuration = HandleMonitorUpdate.handleResponse(response, debug);
-                    //             do{
-                    //                 udpClient.setTimeout(remainingDuration);
-                    //                 byte[] update = udpClient.receive(true);
-                    //                 remainingDuration = HandleMonitorUpdate.handleResponse(update, debug);
-                    //             } while(true);
-                    //         }
-                    //     } catch (SocketTimeoutException e){
-                    //         udpClient.setTimeout(realTimeout);
-                    //         System.out.println(Constants.MONITORING_FINISH_MSG);
-                    //         System.out.println();
-                    //         System.out.println(Constants.SEPARATOR);
-                    //     } catch (Exception e){
-                    //         udpClient.setTimeout(realTimeout);
-                    //         System.out.print(Constants.SEPARATOR);
-                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
-                    //         if (debug) throw(e);
-                    //     }
-                    //     break;
-                    // case Constants.SERVICE_TRANSFER_MONEY:
-                    //     try{
-                    //         packageByte = HandleTransferMoney.createMessage(scanner, curID);
-                    //         if (packageByte.length != 0){
-                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                    //             HandleTransferMoney.handleResponse(response, debug);
-                    //         }
-                    //     } catch (Exception e){
-                    //         System.out.print(Constants.SEPARATOR);
-                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
-                    //         if (debug) throw(e);
-                    //     }
-                    //     break;
-                    // case Constants.SERVICE_CHANGE_PASSWORD:
-                    //     try{
-                    //         packageByte = HandleChangePassword.createMessage(scanner, curID);
-                    //         if (packageByte.length != 0){
-                    //                 byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                    //                 HandleChangePassword.handleResponse(response, debug);
-                    //         }
-                    //     } catch (Exception e){
-                    //         System.out.print(Constants.SEPARATOR);
-                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
-                    //         if (debug) throw(e);
-                    //     }
-                    //     break;
                     case Constants.SERVICE_EXIT:
                         System.out.println(Constants.EXIT_MSG);
                         exit = true;

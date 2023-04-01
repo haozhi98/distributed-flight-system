@@ -31,92 +31,92 @@ void Handler::sendReply(udp_server &server, char *header, char *response, int re
 //Notifies monitoring users by sending notification string 
 void Handler::notify(udp_server &server, string notif, int status){
     cout << "in notify" << endl;
-    if((int)admins.size() == 0) return;
+    // if((int)admins.size() == 0) return;
     
-    char header[HEADER_SIZE];
-    utils::marshalInt(ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(), header);
+    // char header[HEADER_SIZE];
+    // utils::marshalInt(ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(), header);
 
-    char *response = new char[ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size()];
+    // char *response = new char[ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size()];
 
-    while(admins.size() && !admins[0].isAvailable())
-        admins.pop_front();
+    // while(admins.size() && !admins[0].isAvailable())
+    //     admins.pop_front();
 
     
-    for(auto admin:admins){
-        char *cur = response;
+    // for(auto admin:admins){
+    //     char *cur = response;
         
-        int responseID = getResponseID();
+    //     int responseID = getResponseID();
         
-        utils::marshalInt(responseID,cur);
-        cur += INT_SIZE;
+    //     utils::marshalInt(responseID,cur);
+    //     cur += INT_SIZE;
 
-        utils::marshalString(ACK_SUCCESS,cur);
-        cur += STATUS_SIZE;
+    //     utils::marshalString(ACK_SUCCESS,cur);
+    //     cur += STATUS_SIZE;
 
-        utils::marshalInt(INT_SIZE,cur);
-        cur += INT_SIZE;
+    //     utils::marshalInt(INT_SIZE,cur);
+    //     cur += INT_SIZE;
 
-        char *rem = cur;
-        utils::marshalInt(admin.getRemaining(),cur);
-        cur += INT_SIZE;
+    //     char *rem = cur;
+    //     utils::marshalInt(admin.getRemaining(),cur);
+    //     cur += INT_SIZE;
         
-        utils::marshalInt((int)notif.size(),cur);
-        cur += INT_SIZE;
+    //     utils::marshalInt((int)notif.size(),cur);
+    //     cur += INT_SIZE;
     
-        utils::marshalString(notif,cur);
-        cur += (int)notif.size();
+    //     utils::marshalString(notif,cur);
+    //     cur += (int)notif.size();
         
-        server.send(header,HEADER_SIZE,admin.getAddress(),admin.getLength());
-        server.send(response,ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(),admin.getAddress(),admin.getLength());
+    //     server.send(header,HEADER_SIZE,admin.getAddress(),admin.getLength());
+    //     server.send(response,ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(),admin.getAddress(),admin.getLength());
 
-        if(status >= 1){
-            while(admin.isAvailable()){
-                char ackHeader[HEADER_SIZE];
+    //     if(status >= 1){
+    //         while(admin.isAvailable()){
+    //             char ackHeader[HEADER_SIZE];
 
-                cout << "WAITING FOR ACK HEADER\n";
-                int n = server.receive_time(ackHeader,HEADER_SIZE,RECEIVE_TIMEOUT);
+    //             cout << "WAITING FOR ACK HEADER\n";
+    //             int n = server.receive_time(ackHeader,HEADER_SIZE,RECEIVE_TIMEOUT);
                 
-                if(n <= 0){
-                    if(admin.isAvailable()){
-                        utils::marshalInt(admin.getRemaining(),rem);
-                        server.send(header,HEADER_SIZE,admin.getAddress(),admin.getLength());
-                        server.send(response,ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(),admin.getAddress(),admin.getLength());
-                        continue;
-                    }
-                    else break;
-                }
+    //             if(n <= 0){
+    //                 if(admin.isAvailable()){
+    //                     utils::marshalInt(admin.getRemaining(),rem);
+    //                     server.send(header,HEADER_SIZE,admin.getAddress(),admin.getLength());
+    //                     server.send(response,ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(),admin.getAddress(),admin.getLength());
+    //                     continue;
+    //                 }
+    //                 else break;
+    //             }
 
-                int ackSize = utils::unmarshalInt(ackHeader);
-                char* ack = new char[ackSize];
+    //             int ackSize = utils::unmarshalInt(ackHeader);
+    //             char* ack = new char[ackSize];
 
-                cout << "WAITING FOR ACK\n";
-                n = server.receive_time(ack,ackSize,RECEIVE_TIMEOUT);
-                if(n <= 0){
-                    if(admin.isAvailable()){
-                        utils::marshalInt(admin.getRemaining(),rem);
-                        server.send(header,HEADER_SIZE,admin.getAddress(),admin.getLength());
-                        server.send(response,ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(),admin.getAddress(),admin.getLength());
-                        continue;
-                    }
-                    else break;
-                }
-                char *x = ack;
-                int ack_id = utils::unmarshalInt(x);
-                x += ID_SIZE;
+    //             cout << "WAITING FOR ACK\n";
+    //             n = server.receive_time(ack,ackSize,RECEIVE_TIMEOUT);
+    //             if(n <= 0){
+    //                 if(admin.isAvailable()){
+    //                     utils::marshalInt(admin.getRemaining(),rem);
+    //                     server.send(header,HEADER_SIZE,admin.getAddress(),admin.getLength());
+    //                     server.send(response,ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(),admin.getAddress(),admin.getLength());
+    //                     continue;
+    //                 }
+    //                 else break;
+    //             }
+    //             char *x = ack;
+    //             int ack_id = utils::unmarshalInt(x);
+    //             x += ID_SIZE;
                 
-                if(ack_id == responseID) break;
-                else if(status == 2 && checkAndSendOldResponse(server,admin.getAddress().sin_addr.s_addr,ack_id)){
-                    cout << "Old request ID received instead!\n";
-                    cout << "Old response sent..!\n";
-                    cout << "Waiting for ack again..\n";
-                    continue;
-                }
-                else{
-                    cout << "ID mismatch!\nACK ID: " << ack_id << "\nResponse ID: " << responseID << "\n";
-                }
-            }
-        }
-    }
+    //             if(ack_id == responseID) break;
+    //             else if(status == 2 && checkAndSendOldResponse(server,admin.getAddress().sin_addr.s_addr,ack_id)){
+    //                 cout << "Old request ID received instead!\n";
+    //                 cout << "Old response sent..!\n";
+    //                 cout << "Waiting for ack again..\n";
+    //                 continue;
+    //             }
+    //             else{
+    //                 cout << "ID mismatch!\nACK ID: " << ack_id << "\nResponse ID: " << responseID << "\n";
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 // Repeatedly listens for incoming ack and resends response each timeout
@@ -140,17 +140,17 @@ void Handler::ackHandler(udp_server &server, char *header, char *response, int r
 
         cout << "WAITING FOR ACK\n";
         n = server.receive_time(ack,ackSize,RECEIVE_TIMEOUT);
-        
+
         if(n <= 0){
             cout << "Timeout!, resending response ... \n";
             sendReply(server,header,response,responseSize);
             continue;
         }
-        
+
         char *x = ack;
         int ack_id = utils::unmarshalInt(x);
         x += ID_SIZE;
-        
+
         if(ack_id == responseID) break;
         else if(status == 2 && checkAndSendOldResponse(server,cAddress,ack_id)){
             cout << "Old request ID received instead!\n";
@@ -427,6 +427,7 @@ void Handler::bookFlight(udp_server &server, char *p, int req_id, int status){
     p += INT_SIZE;
     seats = utils::unmarshalInt(p);
     pair<int,int> bookingOutcome = flightSystem.createBooking(clientAddress, flightId, seats);
+
     // header indicates size of response
     char header[HEADER_SIZE];
     int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*2;
@@ -455,6 +456,14 @@ void Handler::bookFlight(udp_server &server, char *p, int req_id, int status){
     else if (bookingOutcome.second == 0) notify(server, bookingOutcome.first + " seats available, but required " + seats, status);
     else notify(server, bookingOutcome.second + " seats booked for flight " + flightId , status);
     
+    pair<vector<unsigned long>, int> res = flightSystem.callUpdateService(flightId);
+    vector<unsigned long> userIds = res.first;
+    int remainingSeats = res.second;
+    for (auto& userId: userIds) {
+        cout << userId << endl;
+        doUpdateService(server, userId, flightId, remainingSeats, status);
+    }
+    cout << "have you reached here" << endl;
 }
 
 void Handler::cancelFlight(udp_server &server, char *p, int req_id, int status){
@@ -469,6 +478,8 @@ void Handler::cancelFlight(udp_server &server, char *p, int req_id, int status){
     
     cout << flightId << endl;
     int cancelOutcome = flightSystem.cancelBooking(clientAddress, flightId);
+
+
     // header indicates size of response
     char header[HEADER_SIZE];
     int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*2;
@@ -496,680 +507,75 @@ void Handler::cancelFlight(udp_server &server, char *p, int req_id, int status){
 }
 
 void Handler::registerUpdateService(udp_server &server, char *p, int req_id, int status){
-    cout << "################################ Query by User ID #####################################\n";
+    cout << "################################ Register Update Service #####################################\n";
     unsigned long clientAddress = server.getClientAddress().sin_addr.s_addr;
     if(status == 2 && checkAndSendOldResponse(server,clientAddress,req_id)) return;
 
-    // vector<pair<int,int>> bookings = flightSystem.queryBookings(clientAddress);
-    // header indicates size of response
-    // char header[HEADER_SIZE];
-    // int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*(1+bookings.size()*2);
-    // utils::marshalInt(responseSize,header);
-    // // response
-    // char response[responseSize];
-    // char *cur = response;
-    // // responseId
-    // int responseID = getResponseID();
-    // utils::marshalInt(responseID,cur);
-    // cur += ID_SIZE;
-    // // status
-    // utils::marshalString(ACK,cur);
-    // cur += STATUS_SIZE;
-    
-    // cout << "##########Saving response with status byte " << (int)*(response+ID_SIZE) << " into memory##########\n";
-    // if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
-    // sendReply(server,header,response,responseSize);
-    // if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
-    // notify(server, bookings.size() + " booking(s) found" , status);
-}
-
-/**
-   Handles service 1 (create account):
-   1. unmarshal request
-   2. create account
-   3. marshals and sends response
-   4. handles ack
-   5. notifies monitoring users
- */
-void Handler::service1(udp_server &server, char *p, int req_id, int status){
-    cout << "################################Service 1#####################################\n";
-    unsigned long cAddress = server.getClientAddress().sin_addr.s_addr;
-
-    if(status == 2 && checkAndSendOldResponse(server,cAddress,req_id))
-        return;
-    
-    int currency;
-    float balance;
-    string passw, name;
-
+    int flightId, seconds;
     int length = utils::unmarshalInt(p);
     p += INT_SIZE;
-    name = utils::unmarshalString(p,length);
+    flightId = utils::unmarshalInt(p);
     p += length;
+    length = utils::unmarshalInt(p);
+    p += INT_SIZE;
+    seconds = utils::unmarshalInt(p);
     
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    passw = utils::unmarshalString(p,length);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    currency = utils::unmarshalInt(p);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    balance = utils::unmarshalFloat(p);
-    p += length;
-
-    int accountNum = acManager.createAccount(name,passw,currency,balance);
-    cout << "Created account with account no. " << accountNum << '\n';
-    
+    cout << flightId << " " << seconds << endl;
+    bool isRegistered = flightSystem.registerUpdateService(clientAddress, flightId, seconds);
+    // header indicates size of response
     char header[HEADER_SIZE];
-    char response[ID_SIZE+STATUS_SIZE+INT_SIZE+FLOAT_SIZE];
-
-    utils::marshalInt(ID_SIZE+STATUS_SIZE+INT_SIZE+FLOAT_SIZE,header);
+    int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*2+BOOL_SIZE;
+    utils::marshalInt(responseSize,header);
+    // response
+    char response[responseSize];
     char *cur = response;
-
+    // responseId
     int responseID = getResponseID();
     utils::marshalInt(responseID,cur);
     cur += ID_SIZE;
-
+    // status
     utils::marshalString(ACK,cur);
     cur += STATUS_SIZE;
-
-    utils::marshalInt(INT_SIZE,cur);
+    // seconds
+    utils::marshalInt(seconds,cur);
     cur += INT_SIZE;
-
-    utils::marshalInt(accountNum,cur);
-
-    cout << "!!!!!!!Saving response with status byte " << (int)*(response+ID_SIZE) << " into memo!!!!!!!!!\n";
-
-    if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE+2*INT_SIZE);
-
-    sendReply(server,header,response,ID_SIZE+STATUS_SIZE+2*INT_SIZE);
+    // cancel outcome
+    utils::marshalBool(isRegistered,cur);
     
-    if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE+2*INT_SIZE, responseID, status, cAddress);
-    
-    notify(server,"Opened a new account with name " + name + ", currency " + to_string(currency) + ", balance " + to_string(balance) + ".", status);
+    cout << "##########Saving response with status byte " << (int)*(response+ID_SIZE) << " into memory##########\n";
+    if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
+    sendReply(server,header,response,responseSize);
+    if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
+    if (isRegistered) notify(server, "Registered for update service", status);
+    else notify(server, "Flight not found" , status);
 }
 
-/**
-   Handles service 2 (delete account):
-   1. unmarshal request
-   2. delete account
-   3. marshals and sends response
-   4. handles ack
-   5. notifies monitoring users
- */
-void Handler::service2(udp_server &server, char *p, int req_id, int status){
-    cout << "################################Service 2#####################################\n";
-    unsigned long cAddress = server.getClientAddress().sin_addr.s_addr;
-
-    if(status == 2 && checkAndSendOldResponse(server,cAddress,req_id))
-        return;
+void Handler::doUpdateService(udp_server &server, unsigned long cAddress, int flightId, int seats, int status){
+    cout << "################################ Executing Update Service #####################################\n";
     
-    int accountNum;
-    string passw, name;
-
-    int length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    name = utils::unmarshalString(p,length);
-    p += length;
-    
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    accountNum = utils::unmarshalInt(p);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    passw = utils::unmarshalString(p,length);
-    p += length;
-
-    bool success = acManager.deleteAccount(accountNum,name,passw);
-
+    cout << "client address " << cAddress << " flight id " << flightId << " seats " << seats << endl;
+    // header indicates size of response
     char header[HEADER_SIZE];
-   
-    
-    if(success){
-        char *response = new char[ID_SIZE+STATUS_SIZE];
-        char *cur = response;
-
-        cout << "Success deleting account\n";
-
-        utils::marshalInt(ID_SIZE+STATUS_SIZE,header);
-
-        int responseID = getResponseID();
-        utils::marshalInt(responseID,cur);
-        cur += ID_SIZE;
-
-        utils::marshalString(ACK_SUCCESS,cur);
-
-        if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE);
-
-        sendReply(server,header,response,ID_SIZE+STATUS_SIZE);
-        
-        if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE, responseID, status, cAddress);
-        
-        notify(server,"Deleted account no. " + to_string(accountNum) + " (" + name + ").", status);
-    }
-    else{
-        
-        cout << "Unsuccessful deletion\n";
-        string err = "Wrong account number, name, or password!";
-
-        char *response = new char[ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size()];
-        char *cur = response;
-
-        utils::marshalInt(ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size(),header);
-
-        int responseID = getResponseID();
-        utils::marshalInt(responseID,cur);
-        cur += ID_SIZE;
-        
-        utils::marshalString(ACK_FAIL,cur);
-        cur += STATUS_SIZE;
-
-        utils::marshalInt((int)err.size(),cur);
-        cur += INT_SIZE;
-
-        utils::marshalString(err,cur);
-
-        if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size());
-
-        sendReply(server,header,response,ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size());
-        
-        if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size(), responseID, status, cAddress);
-    }
-}
-
-/**
-   Handles service 3 (deposit):
-   1. unmarshal request
-   2. deposit balance
-   3. marshals and sends response
-   4. handles ack
-   5. notifies monitoring users
- */
-void Handler::service3(udp_server &server, char *p, int req_id, int status){
-    cout << "################################Service 3#####################################\n";
-    unsigned long cAddress = server.getClientAddress().sin_addr.s_addr;
-
-    if(status == 2 && checkAndSendOldResponse(server,cAddress,req_id))
-        return;
-    
-    int accountNum, currency;
-    float amount;
-    string passw, name;
-    
-    int length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    name = utils::unmarshalString(p,length);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    accountNum = utils::unmarshalInt(p);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    passw = utils::unmarshalString(p,length);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    currency = utils::unmarshalInt(p);
-    p += length;
-    
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    amount = utils::unmarshalFloat(p);
-    p += length;
-
-    pair<int,float> balance = acManager.deposit(accountNum,name,passw,currency,amount);
-
-    char header[HEADER_SIZE];
-
-    if(balance.first < 0){
-        string err;
-        if(balance.first == -1) err = "Account number not found!";
-        else if(balance.first == -2) err = "Wrong name!";
-        else if(balance.first == -3) err = "Wrong password!";
-        else if(balance.first == -4) err = "Currency mismatch!";
-        else err = "Unknown error!";
-        
-        utils::marshalInt(ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size(),header);
-
-        char *response = new char[ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size()];
-        char *cur = response;
-
-        int responseID = getResponseID();
-        utils::marshalInt(responseID,cur);
-        cur += ID_SIZE;
-
-        utils::marshalString(ACK_FAIL,cur);
-        cur += STATUS_SIZE;
-
-        utils::marshalInt((int)err.size(),cur);
-        cur += INT_SIZE;
-            
-        utils::marshalString(err,cur);
-        cur += (int)err.size();
-
-        if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size());
-
-        sendReply(server,header,response,ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size());
-        
-        if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size(), responseID, status, cAddress);
-    }
-    else{
-        char response[ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE];
-        char *cur = response;
-
-        utils::marshalInt(ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE,header);
-
-        int responseID = getResponseID();
-        utils::marshalInt(responseID,cur);
-        cur += ID_SIZE;
-
-        utils::marshalString(ACK_SUCCESS,cur);
-        cur += STATUS_SIZE;
-
-        utils::marshalInt(INT_SIZE,cur);
-        cur += INT_SIZE;
-
-        utils::marshalInt(balance.first,cur);
-        cur += INT_SIZE;
-
-        utils::marshalInt(FLOAT_SIZE,cur);
-        cur += INT_SIZE;
-        
-        utils::marshalFloat(balance.second,cur);
-        
-        if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE);
-
-        sendReply(server,header,response,ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE);
-        
-        if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE, responseID, status, cAddress);
-        
-        notify(server,"Deposited " + to_string(amount) + " of currency " + to_string(currency) + " to account no. " + to_string(accountNum) + " (" + name + ") .", status);
-    }
-}
-
-/**
-   Handles service 4 (withdraw):
-   1. unmarshal request
-   2. withdraws balance
-   3. marshals and sends response
-   4. handles ack
-   5. notifies monitoring users
- */
-void Handler::service4(udp_server &server, char *p, int req_id, int status){
-    cout << "################################Service 4#####################################\n";
-    unsigned long cAddress = server.getClientAddress().sin_addr.s_addr;
-
-    if(status == 2 && checkAndSendOldResponse(server,cAddress,req_id))
-        return;
-    
-    int accountNum, currency;
-    float amount;
-    string passw, name;
-    
-    int length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    name = utils::unmarshalString(p,length);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    accountNum = utils::unmarshalInt(p);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    passw = utils::unmarshalString(p,length);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    currency = utils::unmarshalInt(p);
-    p += length;
-    
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    amount = utils::unmarshalFloat(p);
-    p += length;
-
-    pair<int,float> balance = acManager.withdraw(accountNum,name,passw,currency,amount);
-
-    char header[HEADER_SIZE];
-
-    if(balance.first < 0){
-        string err;
-        if(balance.first == -11) err = "Account number not found!";
-        else if(balance.first == -12) err = "Wrong name!";
-        else if(balance.first == -13) err = "Wrong password!";
-        else if(balance.first == -14) err = "Currency mismatch!";
-        else if(balance.first == -15) err = "Unable to withdraw amount higher than balance!";
-        else err = "Unknown error!";
-        
-        utils::marshalInt(ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size(),header);
-
-        char *response = new char[ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size()];
-        char *cur = response;
-
-        int responseID = getResponseID();
-        utils::marshalInt(responseID,cur);
-        cur += ID_SIZE;
-        
-        utils::marshalString(ACK_FAIL,cur);
-        cur += STATUS_SIZE;
-
-        utils::marshalInt((int)err.size(),cur);
-        cur += INT_SIZE;
-            
-        utils::marshalString(err,cur);
-        cur += (int)err.size();
-
-        if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size());
-
-        sendReply(server,header,response,ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size());
-        
-        if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size(), responseID, status, cAddress);
-
-    }
-    else{
-        char response[ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE];
-        char *cur = response;
-
-        utils::marshalInt(ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE,header);
-
-        int responseID = getResponseID();
-        utils::marshalInt(responseID,cur);
-        cur += ID_SIZE;
-        
-        utils::marshalString(ACK_SUCCESS,cur);
-        cur += STATUS_SIZE;
-
-        utils::marshalInt(INT_SIZE,cur);
-        cur += INT_SIZE;
-
-        utils::marshalInt(balance.first,cur);
-        cur += INT_SIZE;
-
-        utils::marshalInt(FLOAT_SIZE,cur);
-        cur += INT_SIZE;
-        
-        utils::marshalFloat(balance.second,cur);
-
-        if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE);
-
-        sendReply(server,header,response,ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE);
-        
-        if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE, responseID, status, cAddress);
-        
-        notify(server,"Withdrawn " + to_string(amount) + " of currency " + to_string(currency) + " from account no. " + to_string(accountNum) + " (" + name + ") .", status);
-    }
-}
-
-/**
-   Handles service 5 (add new monitoring user):
-   1. unmarshal request
-   2. adds new monitoring user
-   3. marshals and sends response
-   4. handles ack
- */
-void Handler::service5(udp_server &server, char *p, int req_id, int status){
-    cout << "################################Service 5#####################################\n";
-    cout << "Beginning service 5\n";
-    unsigned long cAddress = server.getClientAddress().sin_addr.s_addr;
-
-    if(status == 2 && checkAndSendOldResponse(server,cAddress,req_id))
-        return;
-    
-
-    int length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    int interval = utils::unmarshalInt(p);
-    p += length;
-
-    cout << "Obtaining client info..\n";
-    
-    auto clientAddress = server.getClientAddress();
-    auto clientLength  = server.getClientLength();
-
-    cout << "Starting clock..\n";
-    auto start = std::chrono::high_resolution_clock::now();
-
-    cout << "Creating new admin..\n";
-    
-    Admin newAdmin(clientAddress, clientLength, start, interval);
-    admins.push_back(newAdmin);
-
-    cout << "Marshalling\n";
-
-    char header[HEADER_SIZE];
-    char response[ID_SIZE+STATUS_SIZE+2*INT_SIZE];
+    int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*2;
+    utils::marshalInt(responseSize,header);
+    // response
+    char response[responseSize];
     char *cur = response;
-    utils::marshalInt(ID_SIZE+STATUS_SIZE+2*INT_SIZE,header);
-
-    int responseID = getResponseID();
-    utils::marshalInt(responseID,cur);
-    cur += INT_SIZE;
-
-    utils::marshalString(ACK_SUCCESS,cur);
-    cur += STATUS_SIZE;
-
-    utils::marshalInt(INT_SIZE,cur);
-    cur += INT_SIZE;
-    
-    utils::marshalInt(newAdmin.getRemaining(),cur);
-
-    if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE+2*INT_SIZE);
-
-    cout << "Sending response\n";
-
-    sendReply(server,header,response,ID_SIZE+STATUS_SIZE+2*INT_SIZE);
-    
-    cout << "Handling ack\n";
-    
-    if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE+2*INT_SIZE, responseID, status, cAddress);
-}
-
-/**
-   Handles service 6 (transfer balance):
-   1. unmarshal request
-   2. transfer balance
-   3. marshals and sends response
-   4. handles ack
-   5. notifies monitoring users
- */
-void Handler::service6(udp_server &server, char *p, int req_id, int status){
-    cout << "################################Service 6#####################################\n";
-    unsigned long cAddress = server.getClientAddress().sin_addr.s_addr;
-
-    if(status == 2 && checkAndSendOldResponse(server,cAddress,req_id))
-        return;
-    
-    int accountNum1, accountNum2, currency;
-    float amount;
-    string passw, name1, name2;
-
-    int length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    name1 = utils::unmarshalString(p,length);
-    p += length;
-    
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    accountNum1 = utils::unmarshalInt(p);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    name2 = utils::unmarshalString(p,length);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    accountNum2 = utils::unmarshalInt(p);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    passw = utils::unmarshalString(p,length);
-    p += length;
-    
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    currency = utils::unmarshalInt(p);
-    p += length;
-    
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    amount = utils::unmarshalFloat(p);
-    p += length;
-
-    pair<int,float> balance = acManager.transfer(accountNum1,accountNum2,name1,name2,passw,currency,amount);
-    char header[HEADER_SIZE];
-
-    if(balance.first < 0){
-        string err;
-        if(balance.first == -1) err = "Account number not found!";
-        else if(balance.first == -2) err = "Wrong name!";
-        else if(balance.first == -3) err = "Wrong password!";
-        else if(balance.first == -4) err = "Currency mismatch!";
-        else if(balance.first == -11) err = "Account number not found!";
-        else if(balance.first == -12) err = "Wrong name!";
-        else if(balance.first == -13) err = "Wrong password!";
-        else if(balance.first == -14) err = "Currency mismatch!";
-        else if(balance.first == -15) err = "Unable to transfer amount higher than balance!";
-        else if(balance.first == -21) err = "Account number not found!";
-        else if(balance.first == -22) err = "Account number of recipient not found!";
-        else if(balance.first == -23) err = "Wrong name!";
-        else if(balance.first == -24) err = "Wrong recipient name!";
-        else if(balance.first == -25) err = "Wrong password!";
-        else if(balance.first == -26) err = "Currency mismatch!";
-        else if(balance.first == -27) err = "Recipient currency mismatch!";
-        else err = "Unknown error!";
-        
-        utils::marshalInt(ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size(),header);
-
-        char *response = new char[ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size()];
-        char *cur = response;
-
-        int responseID = getResponseID();
-        utils::marshalInt(responseID,cur);
-        cur += INT_SIZE;
-        
-        utils::marshalString(ACK_FAIL,cur);
-        cur += STATUS_SIZE;
-
-        utils::marshalInt((int)err.size(),cur);
-        cur += INT_SIZE;
-            
-        utils::marshalString(err,cur);
-        cur += (int)err.size();
-
-        if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size());
-
-        sendReply(server,header,response,ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size());
-        
-        if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE+INT_SIZE+(int)err.size(), responseID, status, cAddress);
-    }
-    else{
-        char response[ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE];
-        char *cur = response;
-
-        int responseID = getResponseID();
-        utils::marshalInt(responseID,cur);
-        cur += ID_SIZE;
-
-        utils::marshalString(ACK_SUCCESS,cur);
-        cur += STATUS_SIZE;
-
-        utils::marshalInt(INT_SIZE,cur);
-        cur += INT_SIZE;
-
-        utils::marshalInt(balance.first,cur);
-        cur += INT_SIZE;
-
-        utils::marshalInt(INT_SIZE,cur);
-        cur += INT_SIZE;
-        
-        utils::marshalFloat(balance.second,cur);
-
-        utils::marshalInt(ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE,header);
-
-        if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE);
-
-        sendReply(server,header,response,ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE);
-        
-        if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE+3*INT_SIZE+FLOAT_SIZE, responseID, status, cAddress);
-        notify(server,"Transferred " + to_string(amount) + " of currency " + to_string(currency) + " from account no. " + to_string(accountNum1) + " (" + name1 + ") to account no. " + to_string(accountNum2) + " (" + name2 + ") .", status);
-    }
-}
-
-/**
-   Handles service 7 (forget password):
-   1. unmarshal request
-   2. change password
-   3. marshals and sends response
-   4. handles ack
-   5. notifies monitoring users
- */
-void Handler::service7(udp_server &server, char *p, int req_id, int status){
-    cout << "################################Service 7#####################################\n";
-    unsigned long cAddress = server.getClientAddress().sin_addr.s_addr;
-
-    if(status == 2 && checkAndSendOldResponse(server,cAddress,req_id))
-        return;
-    
-    int accountNum;
-    string passw, newPassw, name;
-
-    int length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    name = utils::unmarshalString(p,length);
-    p += length;
-    
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    accountNum = utils::unmarshalInt(p);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    passw = utils::unmarshalString(p,length);
-    p += length;
-
-    length = utils::unmarshalInt(p);
-    p += INT_SIZE;
-    newPassw = utils::unmarshalString(p,length);
-    p += length;
-
-    bool success = acManager.changePassword(accountNum,name,passw,newPassw);
-
-    char header[HEADER_SIZE];
-    char response[ID_SIZE+STATUS_SIZE];
-
-    utils::marshalInt(ID_SIZE+STATUS_SIZE,header);
-    char *cur = response;
-
+    // responseId
     int responseID = getResponseID();
     utils::marshalInt(responseID,cur);
     cur += ID_SIZE;
+    // status
+    utils::marshalString(ACK,cur);
+    cur += STATUS_SIZE;
+    // flightId
+    utils::marshalInt(flightId,cur);
+    cur += INT_SIZE;
+    // seats
+    utils::marshalInt(seats,cur);
     
-    if(success) utils::marshalString(ACK_SUCCESS,cur);
-    else utils::marshalString(ACK_FAIL,cur);
-
-    if(status == 2) memo[{cAddress,req_id}] = string(response,ID_SIZE+STATUS_SIZE);
-
-    sendReply(server,header,response,ID_SIZE+STATUS_SIZE);
-
-    if(status == 2) ackHandler(server, header, response, ID_SIZE+STATUS_SIZE, responseID, status, cAddress);
-    
-    notify(server,"Changed password of account no. " + to_string(accountNum) + " (" + name + ").", status);
+    sendReply(server,header,response,responseSize);
+    if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, cAddress);
+    cout << "after ack handler" << endl;
+    // notify(server, "Sent flight update to " + cAddress, status);
 }
