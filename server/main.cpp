@@ -47,33 +47,37 @@ void handleRequest(udp_server &server, Handler &handler){
     cur+=INT_SIZE;
 
     switch(type){
-    case 0:
+    case 1:
         handler.queryPlace(server,cur,req_id,status);
         break;
-    case 1:
+    case 2:
         handler.queryFlightId(server, cur, req_id, status);
         break;
     // case 1:
     //     handler.service1(server,cur,req_id,status);
     //     break;
-    case 2:
-        handler.service2(server,cur,req_id,status);
-        break;
     case 3:
-        handler.service3(server,cur,req_id,status);
+        handler.queryUserId(server,cur,req_id,status);
+        // handler.service2(server,cur,req_id,status);
         break;
     case 4:
-        handler.service4(server,cur,req_id,status);
+        handler.queryAllFlights(server,cur,req_id,status);
         break;
-    case 5:
-        handler.service5(server,cur,req_id,status);
-        break;
-    case 6:
-        handler.service6(server,cur,req_id,status);
-        break;
-    case 7:
-        handler.service7(server,cur,req_id,status);
-        break;
+    // case 3:
+    //     handler.service3(server,cur,req_id,status);
+    //     break;
+    // case 4:
+    //     handler.service4(server,cur,req_id,status);
+    //     break;
+    // case 5:
+    //     handler.service5(server,cur,req_id,status);
+    //     break;
+    // case 6:
+    //     handler.service6(server,cur,req_id,status);
+    //     break;
+    // case 7:
+    //     handler.service7(server,cur,req_id,status);
+    //     break;
     }
 }
 

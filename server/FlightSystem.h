@@ -14,16 +14,17 @@ private:
 	map<int,Flight> flights;
 
 	// map of userId: map of flightId: seats
-	map<int, map<int, int>> bookings;
+	map<unsigned long, map<int, int>> bookings;
 
 	// map of flightId: queue of <time, userId>
 	map<int, deque<pair<time_t, int>>> monitorQueue;
 public:
 	int addFlight(string source, string destination, int seatsAvailable, float airfare, int flightTime);
 	vector<int> queryByPlace(string source, string destination);
-	vector<pair<int,int>> queryBookings(int userId);
+	vector<pair<int,int>> queryBookings(unsigned long userId);
 	bool checkFlightId(int flightId);
 	vector<Flight> queryByFlightId(int flightId);
+	vector<Flight> queryAllFlights();
 	bool createBooking(int userId, int flightId, int seats);
 	bool cancelBooking(int userId, int flightId);
 	bool registerUpdateService(int userId, int flightId, int monitorInterval);

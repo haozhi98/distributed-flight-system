@@ -1,34 +1,28 @@
-# distributed-banking-system
-CZ4013 - Distributed System Assignment 1
+# Distributed Flight System
 
-This project consolidates basic knowledge about interprocess communication and remote invocation through constructing client and server programs that use UDP as the transport protocol. The client and server programs are designed to simulate a distributed banking system.
+This project consolidates basic knowledge about interprocess communication and remote invocation through constructing client and server programs that use UDP as the transport protocol. The client and server programs are designed to simulate a distributed flight system.
 
 [Report](https://github.com/cacad-ntu/distributed-banking-system-report)
-
-
 
 ## Environment
 
 
 ### Operating System
-- Linux
+- Ubuntu
 
 
 ### Programming Languages
 - Java 1.9 (Client)
 - C++ 11 (Server)
 
-
-
 ## Getting Started
-
 
 ### Client (Java)
 ```
 cd client
 javac -d . -cp .:lib/* *.java
 java -cp .:lib/* client.UDPClient -h <HOST NAME> -p <PORT> [-al] [-am] [-fr <FAILURE RATE>] [-to <TIMEOUT>] [-mt <MAX TIMEOUT COUNT>] [-v]
-```
+```     
 
 #### Note:
 ```bash
@@ -47,7 +41,7 @@ Options:
 ### Server (C++)
 ```
 cd server
-g++ -o server -std=c++11 main.cpp udp_server.cpp utils.cpp Handler.cpp AccountManager.cpp Account.cpp Admin.cpp
+g++ -o server -std=c++11 main.cpp udp_server.cpp utils.cpp Handler.cpp AccountManager.cpp Account.cpp Admin.cpp Flight.cpp FlightSystem.cpp
 ./server <PORT> <MODE> <FAULT> <LIMIT>
 ```
 

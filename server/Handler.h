@@ -38,6 +38,12 @@ class Handler{
 
     void queryPlace(udp_server &server, char *p, int req_id, int status);
     void queryFlightId(udp_server &server, char *p, int req_id, int status);
+    void queryUserId(udp_server &server, char *p, int req_id, int status);
+    void queryAllFlights(udp_server &server, char *p, int req_id, int status);
+    void bookFlight(udp_server &server, char *p, int req_id, int status);
+    void cancelFlight(udp_server &server, char *p, int req_id, int status);
+    void registerUpdateService(udp_server &server, char *p, int req_id, int status);
+
     void service1(udp_server &server, char *p, int req_id, int status);
     void service2(udp_server &server, char *p, int req_id, int status);
     void service3(udp_server &server, char *p, int req_id, int status);

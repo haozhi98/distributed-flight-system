@@ -32,9 +32,10 @@ class Constants{
     public static final int FLOAT_SIZE = 4;
 
     // Service constant
-    public static final int QUERY_PLACE = 0;
-    public static final int QUERY_FLIGHT_ID = 1;
-
+    public static final int QUERY_PLACE = 1;
+    public static final int QUERY_FLIGHT_ID = 2;
+    public static final int QUERY_USER_ID = 3;
+    public static final int QUERY_ALL_FLIGHTS = 4;
     // public static final int SERVICE_OPEN_ACCOUNT = 1;
     public static final int SERVICE_CLOSE_ACCOUNT = 2;
     public static final int SERVICE_DEPOSIT_MONEY = 3;

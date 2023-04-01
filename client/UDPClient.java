@@ -339,10 +339,10 @@ class UDPClient
 
             while(!exit){
                 System.out.println(Constants.SELECTION_SVC_MSG);
-                System.out.println(Constants.QUERY_PLACE_MSG);
-                System.out.println("1. Query flight by flight ID.");
-                System.out.println(Constants.CLOSE_ACCOUNT_SVC_MSG);
-                System.out.println(Constants.DEPOSIT_MONEY_SVC_MSG);
+                System.out.println("1. Query flight by source and destination place.");
+                System.out.println("2. Query flight by flight ID.");
+                System.out.println("3. Query flight you have booked.");
+                System.out.println("4. Query all flights.");
                 System.out.println(Constants.WITHDRAW_MONEY_SVC_MSG);
                 System.out.println(Constants.MONITOR_UPDATE_SVC_MSG);
                 System.out.println(Constants.TRANSFER_MONEY_SVC_MSG);
@@ -384,6 +384,32 @@ class UDPClient
                             if (debug) throw(e);
                         }
                         break;
+                    case Constants.QUERY_USER_ID:
+                        try {
+                            packageByte = QueryBooking.createMessage(scanner, curID);
+                            if (packageByte.length > 0) {
+                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                                QueryBooking.handleResponse(response, debug);
+                            }
+                        } catch (Exception e) {
+                            System.out.print(Constants.SEPARATOR);
+                            System.out.printf(Constants.ERR_PASSWORD_INPUT, e.getMessage());
+                            if (debug) throw(e);
+                        }
+                        break;
+                    case Constants.QUERY_ALL_FLIGHTS:
+                        try {
+                            packageByte = QueryAllFlights.createMessage(scanner, curID);
+                            if (packageByte.length > 0) {
+                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                                QueryAllFlights.handleResponse(response, debug);
+                            }
+                        } catch (Exception e) {
+                            System.out.print(Constants.SEPARATOR);
+                            System.out.printf(Constants.ERR_PASSWORD_INPUT, e.getMessage());
+                            if (debug) throw(e);
+                        }
+                        break;
                     // case Constants.SERVICE_OPEN_ACCOUNT:
                     //     try{
                     //         packageByte = HandleOpenAccount.createMessage(scanner, curID);
@@ -397,97 +423,97 @@ class UDPClient
                     //         if (debug) throw(e);
                     //     }
                     //     break;
-                    case Constants.SERVICE_CLOSE_ACCOUNT:
-                        try{
-                            packageByte = HandleCloseAccount.createMessage(scanner, curID);
-                            if (packageByte.length != 0){
-                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                                HandleCloseAccount.handleResponse(response, debug);
-                            }
-                        } catch (Exception e){
-                            System.out.print(Constants.SEPARATOR);
-                            System.out.printf(Constants.ERR_MSG, e.getMessage());
-                            if (debug) throw(e);
-                        }
-                        break;
-                    case Constants.SERVICE_DEPOSIT_MONEY:
-                        try{
-                            packageByte = HandleDepositMoney.createMessage(scanner, curID);
-                            if (packageByte.length != 0){
-                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                                HandleDepositMoney.handleResponse(response, debug);
-                            }
-                        } catch (Exception e){
-                            System.out.print(Constants.SEPARATOR);
-                            System.out.printf(Constants.ERR_MSG, e.getMessage());
-                            if (debug) throw(e);
-                        }
-                        break;
-                    case Constants.SERVICE_WITHDRAW_MONEY:
-                        try{
-                            packageByte = HandleWithdrawMoney.createMessage(scanner, curID);
-                            if (packageByte.length != 0){
-                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                                HandleWithdrawMoney.handleResponse(response, debug);
-                            }
-                        } catch (Exception e){
-                            System.out.print(Constants.SEPARATOR);
-                            System.out.printf(Constants.ERR_MSG, e.getMessage());
-                            if (debug) throw(e);
-                        }
-                        break;
-                    case Constants.SERVICE_MONITOR_UPDATE:
-                        int realTimeout = udpClient.getTimeout();
-                        try{
-                            packageByte = HandleMonitorUpdate.createMessage(scanner, curID);
-                            if (packageByte.length != 0){
-                                System.out.println(Constants.SEPARATOR);
-                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                                int remainingDuration = HandleMonitorUpdate.handleResponse(response, debug);
-                                do{
-                                    udpClient.setTimeout(remainingDuration);
-                                    byte[] update = udpClient.receive(true);
-                                    remainingDuration = HandleMonitorUpdate.handleResponse(update, debug);
-                                } while(true);
-                            }
-                        } catch (SocketTimeoutException e){
-                            udpClient.setTimeout(realTimeout);
-                            System.out.println(Constants.MONITORING_FINISH_MSG);
-                            System.out.println();
-                            System.out.println(Constants.SEPARATOR);
-                        } catch (Exception e){
-                            udpClient.setTimeout(realTimeout);
-                            System.out.print(Constants.SEPARATOR);
-                            System.out.printf(Constants.ERR_MSG, e.getMessage());
-                            if (debug) throw(e);
-                        }
-                        break;
-                    case Constants.SERVICE_TRANSFER_MONEY:
-                        try{
-                            packageByte = HandleTransferMoney.createMessage(scanner, curID);
-                            if (packageByte.length != 0){
-                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                                HandleTransferMoney.handleResponse(response, debug);
-                            }
-                        } catch (Exception e){
-                            System.out.print(Constants.SEPARATOR);
-                            System.out.printf(Constants.ERR_MSG, e.getMessage());
-                            if (debug) throw(e);
-                        }
-                        break;
-                    case Constants.SERVICE_CHANGE_PASSWORD:
-                        try{
-                            packageByte = HandleChangePassword.createMessage(scanner, curID);
-                            if (packageByte.length != 0){
-                                    byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                                    HandleChangePassword.handleResponse(response, debug);
-                            }
-                        } catch (Exception e){
-                            System.out.print(Constants.SEPARATOR);
-                            System.out.printf(Constants.ERR_MSG, e.getMessage());
-                            if (debug) throw(e);
-                        }
-                        break;
+                    // case Constants.SERVICE_CLOSE_ACCOUNT:
+                    //     try{
+                    //         packageByte = HandleCloseAccount.createMessage(scanner, curID);
+                    //         if (packageByte.length != 0){
+                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                    //             HandleCloseAccount.handleResponse(response, debug);
+                    //         }
+                    //     } catch (Exception e){
+                    //         System.out.print(Constants.SEPARATOR);
+                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
+                    //         if (debug) throw(e);
+                    //     }
+                    //     break;
+                    // case Constants.SERVICE_DEPOSIT_MONEY:
+                    //     try{
+                    //         packageByte = HandleDepositMoney.createMessage(scanner, curID);
+                    //         if (packageByte.length != 0){
+                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                    //             HandleDepositMoney.handleResponse(response, debug);
+                    //         }
+                    //     } catch (Exception e){
+                    //         System.out.print(Constants.SEPARATOR);
+                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
+                    //         if (debug) throw(e);
+                    //     }
+                    //     break;
+                    // case Constants.SERVICE_WITHDRAW_MONEY:
+                    //     try{
+                    //         packageByte = HandleWithdrawMoney.createMessage(scanner, curID);
+                    //         if (packageByte.length != 0){
+                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                    //             HandleWithdrawMoney.handleResponse(response, debug);
+                    //         }
+                    //     } catch (Exception e){
+                    //         System.out.print(Constants.SEPARATOR);
+                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
+                    //         if (debug) throw(e);
+                    //     }
+                    //     break;
+                    // case Constants.SERVICE_MONITOR_UPDATE:
+                    //     int realTimeout = udpClient.getTimeout();
+                    //     try{
+                    //         packageByte = HandleMonitorUpdate.createMessage(scanner, curID);
+                    //         if (packageByte.length != 0){
+                    //             System.out.println(Constants.SEPARATOR);
+                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                    //             int remainingDuration = HandleMonitorUpdate.handleResponse(response, debug);
+                    //             do{
+                    //                 udpClient.setTimeout(remainingDuration);
+                    //                 byte[] update = udpClient.receive(true);
+                    //                 remainingDuration = HandleMonitorUpdate.handleResponse(update, debug);
+                    //             } while(true);
+                    //         }
+                    //     } catch (SocketTimeoutException e){
+                    //         udpClient.setTimeout(realTimeout);
+                    //         System.out.println(Constants.MONITORING_FINISH_MSG);
+                    //         System.out.println();
+                    //         System.out.println(Constants.SEPARATOR);
+                    //     } catch (Exception e){
+                    //         udpClient.setTimeout(realTimeout);
+                    //         System.out.print(Constants.SEPARATOR);
+                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
+                    //         if (debug) throw(e);
+                    //     }
+                    //     break;
+                    // case Constants.SERVICE_TRANSFER_MONEY:
+                    //     try{
+                    //         packageByte = HandleTransferMoney.createMessage(scanner, curID);
+                    //         if (packageByte.length != 0){
+                    //             byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                    //             HandleTransferMoney.handleResponse(response, debug);
+                    //         }
+                    //     } catch (Exception e){
+                    //         System.out.print(Constants.SEPARATOR);
+                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
+                    //         if (debug) throw(e);
+                    //     }
+                    //     break;
+                    // case Constants.SERVICE_CHANGE_PASSWORD:
+                    //     try{
+                    //         packageByte = HandleChangePassword.createMessage(scanner, curID);
+                    //         if (packageByte.length != 0){
+                    //                 byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                    //                 HandleChangePassword.handleResponse(response, debug);
+                    //         }
+                    //     } catch (Exception e){
+                    //         System.out.print(Constants.SEPARATOR);
+                    //         System.out.printf(Constants.ERR_MSG, e.getMessage());
+                    //         if (debug) throw(e);
+                    //     }
+                    //     break;
                     case Constants.SERVICE_EXIT:
                         System.out.println(Constants.EXIT_MSG);
                         exit = true;

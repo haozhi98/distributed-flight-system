@@ -66,7 +66,7 @@ vector<int> FlightSystem::queryByPlace(string source, string destination){
     return res;
 }
 
-vector<pair<int,int>> FlightSystem::queryBookings(int userId){
+vector<pair<int,int>> FlightSystem::queryBookings(unsigned long userId){
     vector<pair<int,int>> res;
     
     if (bookings.find(userId) != bookings.end()) {
@@ -79,10 +79,17 @@ vector<pair<int,int>> FlightSystem::queryBookings(int userId){
 
 vector<Flight> FlightSystem::queryByFlightId(int flightId){
     vector<Flight> res;
-    cout << flightId << endl;
     if (flights.find(flightId) != flights.end()) {
         cout << "Found flight" << endl;
         res.push_back(flights[flightId]);
+    }
+    return res;
+}
+
+vector<Flight> FlightSystem::queryAllFlights(){
+    vector<Flight> res;
+    for (auto& flight: flights) {
+        res.push_back(flight.second);
     }
     return res;
 }
