@@ -63,6 +63,9 @@ void handleRequest(udp_server &server, Handler &handler){
     case 4:
         handler.queryAllFlights(server,cur,req_id,status);
         break;
+    case 5:
+        handler.bookFlight(server,cur,req_id,status);
+        break;
     // case 3:
     //     handler.service3(server,cur,req_id,status);
     //     break;

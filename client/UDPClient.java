@@ -343,9 +343,9 @@ class UDPClient
                 System.out.println("2. Query flight by flight ID.");
                 System.out.println("3. Query flight you have booked.");
                 System.out.println("4. Query all flights.");
-                System.out.println(Constants.WITHDRAW_MONEY_SVC_MSG);
-                System.out.println(Constants.MONITOR_UPDATE_SVC_MSG);
-                System.out.println(Constants.TRANSFER_MONEY_SVC_MSG);
+                System.out.println("5. Book a flight.");
+                System.out.println("6. Cancel a flight.");
+                System.out.println("7. Register for flight update service.");
                 System.out.println(Constants.CHANGE_PASSWORD_SVC_MSG);
                 System.out.println(Constants.EXIT_SVC_MSG);
                 System.out.println();
@@ -398,6 +398,45 @@ class UDPClient
                         }
                         break;
                     case Constants.QUERY_ALL_FLIGHTS:
+                        try {
+                            packageByte = QueryAllFlights.createMessage(scanner, curID);
+                            if (packageByte.length > 0) {
+                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                                QueryAllFlights.handleResponse(response, debug);
+                            }
+                        } catch (Exception e) {
+                            System.out.print(Constants.SEPARATOR);
+                            System.out.printf(Constants.ERR_PASSWORD_INPUT, e.getMessage());
+                            if (debug) throw(e);
+                        }
+                        break;
+                    case Constants.BOOK_FLIGHT:
+                        try {
+                            packageByte = BookFlight.createMessage(scanner, curID);
+                            if (packageByte.length > 0) {
+                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                                BookFlight.handleResponse(response, debug);
+                            }
+                        } catch (Exception e) {
+                            System.out.print(Constants.SEPARATOR);
+                            System.out.printf(Constants.ERR_PASSWORD_INPUT, e.getMessage());
+                            if (debug) throw(e);
+                        }
+                        break;
+                    case Constants.CANCEL_FLIGHT:
+                        try {
+                            packageByte = QueryAllFlights.createMessage(scanner, curID);
+                            if (packageByte.length > 0) {
+                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                                QueryAllFlights.handleResponse(response, debug);
+                            }
+                        } catch (Exception e) {
+                            System.out.print(Constants.SEPARATOR);
+                            System.out.printf(Constants.ERR_PASSWORD_INPUT, e.getMessage());
+                            if (debug) throw(e);
+                        }
+                        break;
+                    case Constants.REGISTER_UPDATE_SERVICE:
                         try {
                             packageByte = QueryAllFlights.createMessage(scanner, curID);
                             if (packageByte.length > 0) {

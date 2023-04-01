@@ -4,7 +4,7 @@
 #include "FlightSystem.h"
 
 FlightSystem::FlightSystem(){
-    newFlightId = 0;
+    newFlightId = 1;
     flights.clear();
     bookings.clear();
     monitorQueue.clear();
@@ -94,19 +94,19 @@ vector<Flight> FlightSystem::queryAllFlights(){
     return res;
 }
 
-bool FlightSystem::createBooking(int userId, int flightId, int seats){
-    int availableSeats = 0;
-
+pair<int,int> FlightSystem::createBooking(unsigned long userId, int flightId, int seats){
     // check if flight exists
-    if (flights.find(flightId) != flights.end()) {
-        availableSeats = flights[flightId].getSeatsAvailable();
+    if (flights.find(flightId) == flights.end()) {
+        return make_pair(-1,0);
     }
+    int availableSeats = flights[flightId].getSeatsAvailable();
 
     // make the booking and update seats in flights if sufficient seats available
     if (flights[flightId].subtractSeats(seats)) {
 
         // user has existing booking
         if (bookings.find(userId) != bookings.end()) {
+            // user already has booking for this flight
             if (bookings[userId].find(flightId) != bookings[userId].end()) {
                 bookings[userId][flightId] += seats;
             }
@@ -121,12 +121,12 @@ bool FlightSystem::createBooking(int userId, int flightId, int seats){
 
         callUpdateService(flightId);
 
-        return true;
+        return make_pair(availableSeats,seats);
     }
-    return false;
+    return make_pair(availableSeats,0);
 }
 
-bool FlightSystem::cancelBooking(int userId, int flightId){
+int FlightSystem::cancelBooking(unsigned long userId, int flightId){
     if (bookings.find(userId) != bookings.end()) {
         if (bookings[userId].find(flightId) != bookings[userId].end()) {
             int seats = bookings[userId][flightId];
@@ -137,13 +137,13 @@ bool FlightSystem::cancelBooking(int userId, int flightId){
 
             callUpdateService(flightId);
 
-            return true;
+            return seats;
         }
     }
-    return false;
+    return 0;
 }
 
-bool FlightSystem::registerUpdateService(int userId, int flightId, int monitorInterval){
+bool FlightSystem::registerUpdateService(unsigned long userId, int flightId, int monitorInterval){
     if (flights.find(flightId) == flights.end()) return false;
     
     deque<pair<time_t,int>> monitoredFlights;

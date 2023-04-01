@@ -1,15 +1,15 @@
 package client;
 
 import java.io.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
-class QueryFlightId{
+class BookFlight{
 
     public static byte[] createMessage(Scanner scanner, int id)throws UnsupportedEncodingException{
         System.out.println(Constants.SEPARATOR);
-        System.out.println("Querying flights by flight ID...\n");
+        System.out.println("Booking a flight...\n");
 
+        // flight id
         String flightIdString;
         int flightId;
         while(true){
@@ -24,24 +24,41 @@ class QueryFlightId{
             }
         }
 
+        // seats
+        String seatsString;
+        int seats;
+        while(true){
+            System.out.print("Enter number of seats: ");
+            seatsString = scanner.nextLine();
+
+            if (seatsString.length() < 1) System.out.println("number of seats cannot be empty!\n");
+            else if (!seatsString.chars().allMatch(Character::isDigit)) System.out.println("number of seats must be all digits!\n");
+            else {
+                seats = Integer.parseInt(seatsString);
+                break;
+            }
+        }
+        
         System.out.println();
         System.out.println(Constants.SEPARATOR);
         System.out.println(Constants.CONFIRM_SUMMARY);
         System.out.printf("Flight ID: %d\n", flightId);
+        System.out.printf("Number of seats: %d\n", seats);
         System.out.println(Constants.CONFIRM_MSG);
         String confirm = scanner.nextLine();
 
         if (confirm.toLowerCase().equals("y")){
-            return QueryFlightId.constructMessage(flightId, id);
+            return BookFlight.constructMessage(flightId, seats, id);
         }
         return new byte[0];
     }
 
-    public static byte[] constructMessage(int flightId, int id)throws UnsupportedEncodingException{
+    public static byte[] constructMessage(int flightId, int seats, int id)throws UnsupportedEncodingException{
         List message = new ArrayList();
         Utils.append(message, id);
-        Utils.append(message, Constants.QUERY_FLIGHT_ID);
+        Utils.append(message, Constants.BOOK_FLIGHT);
         Utils.appendMessage(message, flightId);
+        Utils.appendMessage(message, seats);
 
         return Utils.byteUnboxing(message);
     }
@@ -55,36 +72,29 @@ class QueryFlightId{
         int status = Integer.parseInt(statusStr);
         ptr += Constants.RESPONSE_TYPE_SIZE;
 
-        if (debug) System.out.printf("[DEBUG][QueryFlightId][Status = %d]\n", status);
+        if (debug) System.out.printf("[DEBUG][BookFlight][Status = %d]\n", status);
+
         switch(status){
             case Constants.NAK:
-                if (debug) System.out.println("[DEBUG][QueryFlightId][Unsuccessful response]");
+                if (debug) System.out.println("[DEBUG][BookFlight][Unsuccessful response]");
+
                 String errMsg = Utils.unmarshalMsgString(response, ptr);
                 System.out.printf(Constants.ERR_MSG, errMsg);
                 break;
             case Constants.ACK:
-                if (debug) System.out.println("[DEBUG][QueryFlightId][Successful response]");
-                int flightFound = Utils.unmarshalInteger(response, ptr);
+                if (debug) System.out.println("[DEBUG][BookFlight][Successful response]");
 
-                if (flightFound == 0) {System.out.println("There are no flights that match the flight ID");}
-                else {
-                    ptr += Constants.INT_SIZE;
-                    int flightId = Utils.unmarshalInteger(response, ptr);
-                    ptr += Constants.INT_SIZE;
-                    int unixFlightTime = Utils.unmarshalInteger(response, ptr);
-                    ptr += Constants.INT_SIZE;
-                    float airFare = Utils.unmarshalFloat(response, ptr);
-                    ptr += Constants.FLOAT_SIZE;
-                    int seatsAvailable = Utils.unmarshalInteger(response, ptr);
+                System.out.println("Total response length is : " + response.length);
+                System.out.println("Current response length is : " + (response.length - ptr));
 
-                    Date flightTime = new Date((long)unixFlightTime*1000);
-                    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                int seatsFound = Utils.unmarshalInteger(response, ptr);
+                ptr += Constants.INT_SIZE;
+                int seatsBooked = Utils.unmarshalInteger(response, ptr);
 
-                    System.out.printf("\nFlight ID: %d\n", flightId);
-                    System.out.printf("Flight Date and Time: " + formatter.format(flightTime) + "\n");
-                    System.out.printf("Air Fare: $%.2f\n", airFare);
-                    System.out.printf("Seats Available: %d\n", seatsAvailable);
-                }
+                if (seatsFound == -1) System.out.println("There are no flights that match given flight ID!\n");
+                else if (seatsBooked == 0) System.out.println("Insufficient seats, only " + seatsFound + " seat(s) left!\n");
+                else System.out.println("Booked " + seatsBooked + " seats for the flight!\n");
+
                 break;
             default:
                 System.out.println(Constants.INVALID_RESPONSE);

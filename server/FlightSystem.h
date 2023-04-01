@@ -25,9 +25,9 @@ public:
 	bool checkFlightId(int flightId);
 	vector<Flight> queryByFlightId(int flightId);
 	vector<Flight> queryAllFlights();
-	bool createBooking(int userId, int flightId, int seats);
-	bool cancelBooking(int userId, int flightId);
-	bool registerUpdateService(int userId, int flightId, int monitorInterval);
+	pair<int,int> createBooking(unsigned long userId, int flightId, int seats);
+	int cancelBooking(unsigned long userId, int flightId);
+	bool registerUpdateService(unsigned long userId, int flightId, int monitorInterval);
     vector<int> callUpdateService(int flightId);
 	FlightSystem();
     void ReadFlights();

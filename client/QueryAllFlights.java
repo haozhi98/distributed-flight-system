@@ -57,7 +57,7 @@ class QueryAllFlights{
                 else System.out.println("Found " + flightCount + " flight(s)!\n");
 
                 ptr += Constants.INT_SIZE;
-                int flightId, unixFlightTime, seatsAvailable;
+                int flightId, unixFlightTime, seatsAvailable, strSize;
                 String source, destination;
                 Float airfare;
 
@@ -65,8 +65,16 @@ class QueryAllFlights{
                     flightId = Utils.unmarshalInteger(response, ptr);
                     ptr += Constants.INT_SIZE;
 
-                    // source = Utils.unmarshalMsgString(response, ptr);
-                    // destination = Utils.unmarshalMsgString(response, ptr);
+                    strSize = Utils.unmarshalInteger(response, ptr);
+                    ptr += Constants.INT_SIZE;
+                    source = Utils.unmarshalString(response, ptr, ptr+strSize);
+                    ptr += strSize;
+
+                    strSize = Utils.unmarshalInteger(response, ptr);
+                    ptr += Constants.INT_SIZE;
+                    destination = Utils.unmarshalString(response, ptr, ptr+strSize);
+                    ptr += strSize;
+
                     unixFlightTime = Utils.unmarshalInteger(response, ptr);
                     ptr += Constants.INT_SIZE;
 
@@ -80,8 +88,8 @@ class QueryAllFlights{
                     SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
                     System.out.printf("\nFlight ID: %d\n", flightId);
-                    // System.out.println("Source Place: \n" + source);
-                    // System.out.println("Destination Place: \n" + destination);
+                    System.out.printf("Source Place: %s\n", source);
+                    System.out.printf("Destination Place: %s\n", destination);
                     System.out.printf("Flight Date and Time: " + formatter.format(flightTime) + "\n");
                     System.out.printf("Air Fare: $%.2f\n", airfare);
                     System.out.printf("Seats Available: %d\n", seatsAvailable);

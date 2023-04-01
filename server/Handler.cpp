@@ -345,9 +345,18 @@ void Handler::queryAllFlights(udp_server &server, char *p, int req_id, int statu
     if(status == 2 && checkAndSendOldResponse(server,clientAddress,req_id)) return;
 
     vector<Flight> flights = flightSystem.queryAllFlights();
+
     // header indicates size of response
     char header[HEADER_SIZE];
-    int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE+flights.size()*(3*INT_SIZE+FLOAT_SIZE);
+    int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE+flights.size()*(5*INT_SIZE+FLOAT_SIZE);
+
+    if (flights.size()>1) {
+        for (auto& flight: flights) {
+            responseSize += flight.getSource().size();
+            responseSize += flight.getDestination().size();
+        }
+    }
+
     utils::marshalInt(responseSize,header);
     // response
     char response[responseSize];
@@ -364,20 +373,27 @@ void Handler::queryAllFlights(udp_server &server, char *p, int req_id, int statu
     cur += INT_SIZE;
 
     if (flights.size() > 1) {
-        int flightId, flightTime, seatsAvailable;
-        float airFair;
+        int str_size;
         string source, destination;
 
         for (auto& flight: flights){
             // flight ID
             utils::marshalInt(flight.getFlightId(), cur);
             cur += INT_SIZE;
-            // // source
-            // utils::marshalString(flight.getSource(), cur);
-            // cur += (int)flight.getSource().size();
-            // // destination 
-            // utils::marshalString(flight.getDestination(), cur);
-            // cur += (int)flight.getDestination().size();
+            // source
+            source = flight.getSource();
+            str_size = source.size();
+            utils::marshalInt(str_size, cur);
+            cur += INT_SIZE;
+            utils::marshalString(source, cur);
+            cur += str_size;
+            // destination 
+            destination = flight.getDestination();
+            str_size = destination.size();
+            utils::marshalInt(str_size, cur);
+            cur += INT_SIZE;
+            utils::marshalString(destination, cur);
+            cur += str_size;
             // flight time
             utils::marshalInt(flight.getFlightTime(), cur);
             cur += INT_SIZE;
@@ -398,31 +414,49 @@ void Handler::queryAllFlights(udp_server &server, char *p, int req_id, int statu
 }
 
 void Handler::bookFlight(udp_server &server, char *p, int req_id, int status){
-    cout << "################################ Query by User ID #####################################\n";
+    cout << "################################ Book Flight #####################################\n";
     unsigned long clientAddress = server.getClientAddress().sin_addr.s_addr;
     if(status == 2 && checkAndSendOldResponse(server,clientAddress,req_id)) return;
-
-    // vector<pair<int,int>> flights = flightSystem.queryBookings(clientAddress);
-    // header indicates size of response
-    // char header[HEADER_SIZE];
-    // int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*(1+bookings.size()*2);
-    // utils::marshalInt(responseSize,header);
-    // // response
-    // char response[responseSize];
-    // char *cur = response;
-    // // responseId
-    // int responseID = getResponseID();
-    // utils::marshalInt(responseID,cur);
-    // cur += ID_SIZE;
-    // // status
-    // utils::marshalString(ACK,cur);
-    // cur += STATUS_SIZE;
     
-    // cout << "##########Saving response with status byte " << (int)*(response+ID_SIZE) << " into memory##########\n";
-    // if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
-    // sendReply(server,header,response,responseSize);
-    // if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
-    // notify(server, bookings.size() + " booking(s) found" , status);
+    int flightId, seats;
+    int length = utils::unmarshalInt(p);
+    p += INT_SIZE;
+    flightId = utils::unmarshalInt(p);
+    p += length;
+    length = utils::unmarshalInt(p);
+    p += INT_SIZE;
+    seats = utils::unmarshalInt(p);
+    cout << flightId << " " << seats << endl;
+    pair<int,int> bookingOutcome = flightSystem.createBooking(clientAddress, flightId, seats);
+    // header indicates size of response
+    char header[HEADER_SIZE];
+    int responseSize = ID_SIZE+STATUS_SIZE+INT_SIZE*2;
+    utils::marshalInt(responseSize,header);
+    // response
+    char response[responseSize];
+    char *cur = response;
+    // responseId
+    int responseID = getResponseID();
+    utils::marshalInt(responseID,cur);
+    cur += ID_SIZE;
+    // status
+    utils::marshalString(ACK,cur);
+    cur += STATUS_SIZE;
+    // seats found
+    utils::marshalInt(bookingOutcome.first,cur);
+    cur += INT_SIZE;
+    // seats booked
+    utils::marshalInt(bookingOutcome.second,cur);
+    
+    cout << "##########Saving response with status byte " << (int)*(response+ID_SIZE) << " into memory##########\n";
+    cout << bookingOutcome.first << " " << bookingOutcome.second << endl;
+    if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
+    sendReply(server,header,response,responseSize);
+    if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
+    if (bookingOutcome.first == -1) notify(server, "Flight not found", status);
+    else if (bookingOutcome.second == 0) notify(server, bookingOutcome.first + " seats available, but required " + seats, status);
+    else notify(server, bookingOutcome.second + " seats booked for flight " + flightId , status);
+    
 }
 
 void Handler::cancelFlight(udp_server &server, char *p, int req_id, int status){

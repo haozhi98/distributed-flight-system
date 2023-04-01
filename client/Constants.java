@@ -36,6 +36,9 @@ class Constants{
     public static final int QUERY_FLIGHT_ID = 2;
     public static final int QUERY_USER_ID = 3;
     public static final int QUERY_ALL_FLIGHTS = 4;
+    public static final int BOOK_FLIGHT = 5;
+    public static final int CANCEL_FLIGHT = 6;
+    public static final int REGISTER_UPDATE_SERVICE = 7;
     // public static final int SERVICE_OPEN_ACCOUNT = 1;
     public static final int SERVICE_CLOSE_ACCOUNT = 2;
     public static final int SERVICE_DEPOSIT_MONEY = 3;
