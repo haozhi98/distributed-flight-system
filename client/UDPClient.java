@@ -425,10 +425,10 @@ class UDPClient
                         break;
                     case Constants.CANCEL_FLIGHT:
                         try {
-                            packageByte = QueryAllFlights.createMessage(scanner, curID);
+                            packageByte = CancelFlight.createMessage(scanner, curID);
                             if (packageByte.length > 0) {
                                 byte[] response = udpClient.sendAndReceive(packageByte, curID);
-                                QueryAllFlights.handleResponse(response, debug);
+                                CancelFlight.handleResponse(response, debug);
                             }
                         } catch (Exception e) {
                             System.out.print(Constants.SEPARATOR);

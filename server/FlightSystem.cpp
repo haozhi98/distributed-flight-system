@@ -95,7 +95,7 @@ vector<Flight> FlightSystem::queryAllFlights(){
 }
 
 pair<int,int> FlightSystem::createBooking(unsigned long userId, int flightId, int seats){
-    // check if flight exists
+    // if flight does not exists
     if (flights.find(flightId) == flights.end()) {
         return make_pair(-1,0);
     }
@@ -127,18 +127,19 @@ pair<int,int> FlightSystem::createBooking(unsigned long userId, int flightId, in
 }
 
 int FlightSystem::cancelBooking(unsigned long userId, int flightId){
-    if (bookings.find(userId) != bookings.end()) {
-        if (bookings[userId].find(flightId) != bookings[userId].end()) {
-            int seats = bookings[userId][flightId];
-            flights[flightId].addSeats(seats);
+    // if flight does not exists
+    if (flights.find(flightId) == flights.end()) {
+        return -1;
+    }
+    if (bookings.find(userId) != bookings.end() && bookings[userId].find(flightId) != bookings[userId].end()) {
+        int seats = bookings[userId][flightId];
+        flights[flightId].addSeats(seats);
+        // remove booking from bookings
+        bookings[userId].erase(flightId);
 
-            // remove booking from bookings
-            bookings[userId].erase(flightId);
+        callUpdateService(flightId);
 
-            callUpdateService(flightId);
-
-            return seats;
-        }
+        return seats;
     }
     return 0;
 }

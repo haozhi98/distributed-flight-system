@@ -5,6 +5,8 @@
     ],
     "files.associations": {
         "utility": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "iostream": "cpp",
+        "ostream": "cpp"
     }
 }
