@@ -125,10 +125,13 @@ class RegisterUpdateService{
                 System.out.println("Total response length is : " + response.length);
                 System.out.println("Current response length is : " + (response.length - ptr));
 
-                boolean isRegistered = Utils.unmarshalBool(response, ptr);
+                int flightId = Utils.unmarshalInteger(response, ptr);
+                ptr += Constants.INT_SIZE;
+                int seats = Utils.unmarshalInteger(response, ptr);
 
-                if (isRegistered) System.out.println("Successfully registered for update service!\n");
-                else System.out.println("Flight not found!\n");
+                System.out.println("Update on flight seats availability!\n");
+                System.out.printf("Flight ID: %d\n", flightId);
+                System.out.printf("Seats Available: %d\n", seats);
 
                 break;
             default:

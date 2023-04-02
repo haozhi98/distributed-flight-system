@@ -137,6 +137,7 @@ class UDPClient
 
         byte[] header = Utils.marshal(message.length);
         DatagramPacket headerPacket = new DatagramPacket(header, header.length, this.IPAddress, this.port);
+        System.out.println("Ip address"+this.IPAddress);
         this.clientSocket.send(headerPacket);
 
         DatagramPacket sendPacket = new DatagramPacket(message, message.length, this.IPAddress, this.port);
@@ -156,6 +157,7 @@ class UDPClient
         int messageLength;
         DatagramPacket receivePacket;
         do{
+            System.out.println("waiting here");
             byte[] header = new byte[4];
             DatagramPacket headerPacket = new DatagramPacket(header, header.length);
             this.clientSocket.receive(headerPacket);
@@ -322,7 +324,7 @@ class UDPClient
             System.out.print(Constants.SEPARATOR);
             System.out.println(Constants.WELCOME_MSG);
             System.out.println(Constants.SEPARATOR);
-
+            System.out.println("Client ip "+host);
             UDPClient udpClient = new UDPClient(host, port, debug);
             if (atLeastOnce){
                 udpClient.setSemInvo(Constants.AT_LEAST_ONE_SEM_INVO);
@@ -338,6 +340,7 @@ class UDPClient
             boolean exit = false;
 
             while(!exit){
+                System.out.println(udpClient.IPAddress);
                 System.out.println(Constants.SELECTION_SVC_MSG);
                 System.out.println("1. Query flight by source and destination place.");
                 System.out.println("2. Query flight by flight ID.");

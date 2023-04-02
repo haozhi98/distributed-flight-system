@@ -5,6 +5,7 @@
 #include<utility>
 #include<queue>
 #include "Flight.h"
+#include "udp_server.h"
 using namespace std;
 
 class FlightSystem{
@@ -17,7 +18,7 @@ private:
 	map<unsigned long, map<int, int>> bookings;
 
 	// map of flightId: queue of <time, userId>
-	map<int, deque<pair<time_t, unsigned long>>> monitorQueue;
+	map<int, deque<pair<time_t, sockaddr_in>>> monitorQueue;
 public:
 	int addFlight(string source, string destination, int seatsAvailable, float airfare, int flightTime);
 	vector<int> queryByPlace(string source, string destination);
@@ -27,8 +28,8 @@ public:
 	vector<Flight> queryAllFlights();
 	pair<int,int> createBooking(unsigned long userId, int flightId, int seats);
 	int cancelBooking(unsigned long userId, int flightId);
-	bool registerUpdateService(unsigned long userId, int flightId, int monitorInterval);
-    pair<vector<unsigned long>, int>  callUpdateService(int flightId);
+	bool registerUpdateService(sockaddr_in cAddr, int flightId, int monitorInterval);
+    pair<vector<sockaddr_in>, int>  callUpdateService(int flightId);
 	FlightSystem();
     void ReadFlights();
 };

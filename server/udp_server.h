@@ -34,6 +34,7 @@ private:
 public:
     int receive_time(char *buf, size_t bufsize, int timeout_in_seconds);
     void send(const char *buf, size_t bufsize);
+    void send(const char *buf, size_t bufsize, unsigned long clientAddress);
     void send(const char *buf, size_t bufsize, struct sockaddr_in addr, unsigned len);
 
     struct sockaddr_in getClientAddress();

@@ -140,10 +140,10 @@ int FlightSystem::cancelBooking(unsigned long userId, int flightId){
     return 0;
 }
 
-bool FlightSystem::registerUpdateService(unsigned long userId, int flightId, int monitorInterval){
+bool FlightSystem::registerUpdateService(sockaddr_in cAddr, int flightId, int monitorInterval){
     if (flights.find(flightId) == flights.end()) return false;
     
-    deque<pair<time_t,unsigned long>> monitoredFlights;
+    deque<pair<time_t,sockaddr_in>> monitoredFlights;
     if (monitorQueue.find(flightId) != monitorQueue.end()) {
         monitoredFlights = monitorQueue[flightId];
     }
@@ -157,24 +157,29 @@ bool FlightSystem::registerUpdateService(unsigned long userId, int flightId, int
     
     time_t expiryTime = curTime + monitorInterval;
 
-    monitoredFlights.push_back(make_pair(expiryTime, userId));
+    monitoredFlights.push_back(make_pair(expiryTime, cAddr));
     monitorQueue[flightId] = monitoredFlights;
+    
+    char str[INET_ADDRSTRLEN];
 
     for (auto &flight: monitorQueue) {
         cout << "Flight id " << flight.first << endl;
         for (auto & item: flight.second) {
-            cout << "time " << item.first << " userId " << item.second << endl;
+            
+            inet_ntop(AF_INET,&(item.second.sin_addr.s_addr), str, INET_ADDRSTRLEN);
+
+            cout << "time " << item.first << " userId " << str << endl;
         }
     }
 
     return true;
 }
 
-pair<vector<unsigned long>, int> FlightSystem::callUpdateService(int flightId){
+pair<vector<sockaddr_in>, int> FlightSystem::callUpdateService(int flightId){
     cout << "in call update service" << endl;
-    pair<vector<unsigned long>,int> res;
-    vector<unsigned long> userIds;
-    deque<pair<time_t,unsigned long>> monitoredFlights;
+    pair<vector<sockaddr_in>,int> res;
+    vector<sockaddr_in> userAddrs;
+    deque<pair<time_t,sockaddr_in>> monitoredFlights;
 
     if (monitorQueue.find(flightId) != monitorQueue.end()) {
         monitoredFlights = monitorQueue[flightId];
@@ -187,11 +192,16 @@ pair<vector<unsigned long>, int> FlightSystem::callUpdateService(int flightId){
         monitoredFlights.pop_front();
     }
 
+    char str[INET_ADDRSTRLEN];
+
     for (auto& item: monitoredFlights) {
-        cout << "user id " << item.second << endl;
-        userIds.push_back(item.second);
+        inet_ntop(AF_INET,&(item.second.sin_addr.s_addr), str, INET_ADDRSTRLEN);
+
+        cout << "time " << item.first << " userId " << str << endl;
+
+        userAddrs.push_back(item.second);
     }
 
-    return make_pair(userIds,flights[flightId].getSeatsAvailable());
+    return make_pair(userAddrs,flights[flightId].getSeatsAvailable());
 
 }
