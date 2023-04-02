@@ -41,7 +41,6 @@ class RegisterUpdateService{
         
         System.out.println();
         System.out.println(Constants.SEPARATOR);
-        System.out.println(Constants.CONFIRM_SUMMARY);
         System.out.printf("Flight ID: %d\n", flightId);
         System.out.printf("Number of seconds for monitor update service: %d\n", seconds);
         System.out.println(Constants.CONFIRM_MSG);
@@ -83,9 +82,6 @@ class RegisterUpdateService{
                 break;
             case Constants.ACK:
                 if (debug) System.out.println("[DEBUG][RegisterUpdateService][Successful response]");
-
-                System.out.println("Total response length is : " + response.length);
-                System.out.println("Current response length is : " + (response.length - ptr));
 
                 int seconds = Utils.unmarshalInteger(response, ptr)*1000;
                 ptr += Constants.INT_SIZE;

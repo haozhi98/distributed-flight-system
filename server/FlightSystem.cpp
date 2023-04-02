@@ -50,14 +50,8 @@ int FlightSystem::addFlight(string source, string destination, int seatsAvailabl
 
 vector<int> FlightSystem::queryByPlace(string source, string destination){
     vector<int> res;
-    cout << source << endl;
-    cout << destination << endl;
-    cout << flights.size() << endl;
     for (auto& item: flights) {
         // filter by source and destination
-        cout << item.second.getSource() << endl;
-        cout << item.second.getDestination() << endl;
-        
         if (item.second.getSource() == source && item.second.getDestination() == destination) {
             // add flightId to return array
             res.push_back(item.first);
@@ -80,7 +74,6 @@ vector<pair<int,int>> FlightSystem::queryBookings(unsigned long userId){
 vector<Flight> FlightSystem::queryByFlightId(int flightId){
     vector<Flight> res;
     if (flights.find(flightId) != flights.end()) {
-        cout << "Found flight" << endl;
         res.push_back(flights[flightId]);
     }
     return res;
@@ -159,24 +152,11 @@ bool FlightSystem::registerUpdateService(sockaddr_in cAddr, int flightId, int mo
 
     monitoredFlights.push_back(make_pair(expiryTime, cAddr));
     monitorQueue[flightId] = monitoredFlights;
-    
-    char str[INET_ADDRSTRLEN];
-
-    for (auto &flight: monitorQueue) {
-        cout << "Flight id " << flight.first << endl;
-        for (auto & item: flight.second) {
-            
-            inet_ntop(AF_INET,&(item.second.sin_addr.s_addr), str, INET_ADDRSTRLEN);
-
-            cout << "time " << item.first << " userId " << str << endl;
-        }
-    }
 
     return true;
 }
 
 pair<vector<sockaddr_in>, int> FlightSystem::callUpdateService(int flightId){
-    cout << "in call update service" << endl;
     pair<vector<sockaddr_in>,int> res;
     vector<sockaddr_in> userAddrs;
     deque<pair<time_t,sockaddr_in>> monitoredFlights;
@@ -192,13 +172,7 @@ pair<vector<sockaddr_in>, int> FlightSystem::callUpdateService(int flightId){
         monitoredFlights.pop_front();
     }
 
-    char str[INET_ADDRSTRLEN];
-
     for (auto& item: monitoredFlights) {
-        inet_ntop(AF_INET,&(item.second.sin_addr.s_addr), str, INET_ADDRSTRLEN);
-
-        cout << "time " << item.first << " userId " << str << endl;
-
         userAddrs.push_back(item.second);
     }
 

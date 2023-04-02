@@ -26,7 +26,6 @@ class CancelFlight{
         
         System.out.println();
         System.out.println(Constants.SEPARATOR);
-        System.out.println(Constants.CONFIRM_SUMMARY);
         System.out.printf("Flight ID: %d\n", flightId);
         System.out.println(Constants.CONFIRM_MSG);
         String confirm = scanner.nextLine();
@@ -66,9 +65,6 @@ class CancelFlight{
                 break;
             case Constants.ACK:
                 if (debug) System.out.println("[DEBUG][CancelFlight][Successful response]");
-
-                System.out.println("Total response length is : " + response.length);
-                System.out.println("Current response length is : " + (response.length - ptr));
 
                 int seatsCancelled = Utils.unmarshalInteger(response, ptr);
 

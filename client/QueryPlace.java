@@ -31,7 +31,6 @@ class QueryPlace{
         
         System.out.println();
         System.out.println(Constants.SEPARATOR);
-        System.out.println(Constants.CONFIRM_SUMMARY);
         System.out.printf("Source Place: %s\n", sourcePlace);
         System.out.printf("Destination Place: %s\n", destinationPlace);
         System.out.println(Constants.CONFIRM_MSG);
@@ -73,9 +72,6 @@ class QueryPlace{
                 break;
             case Constants.ACK:
                 if (debug) System.out.println("[DEBUG][QueryPlace][Successful response]");
-
-                System.out.println("Total response length is : " + response.length);
-                System.out.println("Current response length is : " + (response.length - ptr));
 
                 int flightCount = Utils.unmarshalInteger(response, ptr);
 

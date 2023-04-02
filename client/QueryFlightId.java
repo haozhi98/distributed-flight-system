@@ -26,7 +26,6 @@ class QueryFlightId{
 
         System.out.println();
         System.out.println(Constants.SEPARATOR);
-        System.out.println(Constants.CONFIRM_SUMMARY);
         System.out.printf("Flight ID: %d\n", flightId);
         System.out.println(Constants.CONFIRM_MSG);
         String confirm = scanner.nextLine();

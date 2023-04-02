@@ -45,9 +45,6 @@ class QueryBooking{
             case Constants.ACK:
                 if (debug) System.out.println("[DEBUG][QueryUserId][Successful response]");
 
-                System.out.println("Total response length is : " + response.length);
-                System.out.println("Current response length is : " + (response.length - ptr));
-
                 int bookingCount = Utils.unmarshalInteger(response, ptr);
 
                 if (bookingCount == 0) System.out.println("You have no flights booked yet!\n");

@@ -4,26 +4,19 @@
 #include <iostream>
 #include "udp_server.h"
 #include "utils.h"
-#include "AccountManager.h"
 #include "FlightSystem.h"
 #include "constants.h"
 #include <chrono>
 #include <deque>
 #include <string>
 #include <map>
-#include "Admin.h"
 using namespace std;
 
 class Handler{
  private:
-    deque<Admin> admins;
-    AccountManager acManager;
     map<pair<unsigned long,int>,string> memo;
-
     map<pair<unsigned long, int>, string> responses;
-
     FlightSystem flightSystem;
-    
     int response_id;
     int limit;
     unsigned seed;
@@ -34,7 +27,6 @@ class Handler{
  public:
     void ackHandler(udp_server &server, char *header, char *response, int responseSize, int responseID, int status, unsigned long cAddress);
     int getResponseID();
-    void notify(udp_server &server, string s, int status);
 
     void queryPlace(udp_server &server, char *p, int req_id, int status);
     void queryFlightId(udp_server &server, char *p, int req_id, int status);

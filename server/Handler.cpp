@@ -2,7 +2,6 @@
 #include "Flight.h"
 
 Handler::Handler(int _limit, double _failureRate){
-    acManager = AccountManager();
     flightSystem = FlightSystem();
     response_id = 0;
     limit = _limit;
@@ -26,97 +25,6 @@ void Handler::sendReply(udp_server &server, char *header, char *response, int re
         cout << ">>>>>>>>>>Response id " << utils::unmarshalInt(response) << " of length " << responseSize << " is sent\n";
     }
     else cout << "################################Failure simulated#####################################\n";
-}
-
-//Notifies monitoring users by sending notification string 
-void Handler::notify(udp_server &server, string notif, int status){
-    cout << "in notify" << endl;
-    // if((int)admins.size() == 0) return;
-    
-    // char header[HEADER_SIZE];
-    // utils::marshalInt(ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(), header);
-
-    // char *response = new char[ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size()];
-
-    // while(admins.size() && !admins[0].isAvailable())
-    //     admins.pop_front();
-
-    
-    // for(auto admin:admins){
-    //     char *cur = response;
-        
-    //     int responseID = getResponseID();
-        
-    //     utils::marshalInt(responseID,cur);
-    //     cur += INT_SIZE;
-
-    //     utils::marshalString(ACK_SUCCESS,cur);
-    //     cur += STATUS_SIZE;
-
-    //     utils::marshalInt(INT_SIZE,cur);
-    //     cur += INT_SIZE;
-
-    //     char *rem = cur;
-    //     utils::marshalInt(admin.getRemaining(),cur);
-    //     cur += INT_SIZE;
-        
-    //     utils::marshalInt((int)notif.size(),cur);
-    //     cur += INT_SIZE;
-    
-    //     utils::marshalString(notif,cur);
-    //     cur += (int)notif.size();
-        
-    //     server.send(header,HEADER_SIZE,admin.getAddress(),admin.getLength());
-    //     server.send(response,ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(),admin.getAddress(),admin.getLength());
-
-    //     if(status >= 1){
-    //         while(admin.isAvailable()){
-    //             char ackHeader[HEADER_SIZE];
-
-    //             cout << "WAITING FOR ACK HEADER\n";
-    //             int n = server.receive_time(ackHeader,HEADER_SIZE,RECEIVE_TIMEOUT);
-                
-    //             if(n <= 0){
-    //                 if(admin.isAvailable()){
-    //                     utils::marshalInt(admin.getRemaining(),rem);
-    //                     server.send(header,HEADER_SIZE,admin.getAddress(),admin.getLength());
-    //                     server.send(response,ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(),admin.getAddress(),admin.getLength());
-    //                     continue;
-    //                 }
-    //                 else break;
-    //             }
-
-    //             int ackSize = utils::unmarshalInt(ackHeader);
-    //             char* ack = new char[ackSize];
-
-    //             cout << "WAITING FOR ACK\n";
-    //             n = server.receive_time(ack,ackSize,RECEIVE_TIMEOUT);
-    //             if(n <= 0){
-    //                 if(admin.isAvailable()){
-    //                     utils::marshalInt(admin.getRemaining(),rem);
-    //                     server.send(header,HEADER_SIZE,admin.getAddress(),admin.getLength());
-    //                     server.send(response,ID_SIZE + STATUS_SIZE + 3*INT_SIZE + (int)notif.size(),admin.getAddress(),admin.getLength());
-    //                     continue;
-    //                 }
-    //                 else break;
-    //             }
-    //             char *x = ack;
-    //             int ack_id = utils::unmarshalInt(x);
-    //             x += ID_SIZE;
-                
-    //             if(ack_id == responseID) break;
-    //             else if(status == 2 && checkAndSendOldResponse(server,admin.getAddress().sin_addr.s_addr,ack_id)){
-    //                 cout << "Old request ID received instead!\n";
-    //                 cout << "Old response sent..!\n";
-    //                 cout << "Waiting for ack again..\n";
-    //                 continue;
-    //             }
-    //             else{
-    //                 cout << "ID mismatch!\nACK ID: " << ack_id << "\nResponse ID: " << responseID << "\n";
-    //             }
-    //         }
-    //     }
-    // }
 }
 
 // Repeatedly listens for incoming ack and resends response each timeout
@@ -232,7 +140,7 @@ void Handler::queryPlace(udp_server &server, char *p, int req_id, int status){
     if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
     sendReply(server,header,response,responseSize);
     if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
-    notify(server,"Found " + to_string(flightIds.size()) + " flights with source place from: " + source + ", to destination place:  " + destination, status);
+    cout << "Found " + to_string(flightIds.size()) + " flights with source place from: " + source + ", to destination place:  " + destination << std::endl;
 }
 
 void Handler::queryFlightId(udp_server &server, char *p, int req_id, int status){
@@ -286,8 +194,8 @@ void Handler::queryFlightId(udp_server &server, char *p, int req_id, int status)
     if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
     sendReply(server,header,response,responseSize);
     if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
-    if (flight.size() > 0) notify(server,"Found flight: " + to_string(flightId) + "\nFlight Time: " + to_string(flight[0].getFlightTime()) + "\nAirfare:  " + to_string(flight[0].getAirFare()) + "\n Seats Available: " + to_string(flight[0].getSeatsAvailable()) , status);
-    else notify(server, "Not flight found with flight ID: " + to_string(flightId), status);
+    if (flight.size() > 0) cout << "Found flight: " + to_string(flightId) + "\nFlight Time: " + to_string(flight[0].getFlightTime()) + "\nAirfare:  " + to_string(flight[0].getAirFare()) + "\n Seats Available: " + to_string(flight[0].getSeatsAvailable()) << endl;
+    else cout << "Not flight found with flight ID: " + to_string(flightId) << endl;
 }
 
 void Handler::queryUserId(udp_server &server, char *p, int req_id, int status){
@@ -336,7 +244,7 @@ void Handler::queryUserId(udp_server &server, char *p, int req_id, int status){
     if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
     sendReply(server,header,response,responseSize);
     if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
-    notify(server, bookings.size() + " booking(s) found" , status);
+    cout << bookings.size() + " booking(s) found" << endl;
 }
 
 void Handler::queryAllFlights(udp_server &server, char *p, int req_id, int status){
@@ -410,7 +318,7 @@ void Handler::queryAllFlights(udp_server &server, char *p, int req_id, int statu
     if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
     sendReply(server,header,response,responseSize);
     if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
-    notify(server, flights.size() + " flight(s) details sent" , status);
+    cout << flights.size() + " flight(s) details sent" << endl;
 }
 
 void Handler::bookFlight(udp_server &server, char *p, int req_id, int status){
@@ -452,9 +360,9 @@ void Handler::bookFlight(udp_server &server, char *p, int req_id, int status){
     if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
     sendReply(server,header,response,responseSize);
     if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
-    if (bookingOutcome.first == -1) notify(server, "Flight not found", status);
-    else if (bookingOutcome.second == 0) notify(server, bookingOutcome.first + " seats available, but required " + seats, status);
-    else notify(server, bookingOutcome.second + " seats booked for flight " + flightId , status);
+    if (bookingOutcome.first == -1) cout << "Flight not found" << endl;
+    else if (bookingOutcome.second == 0) cout << bookingOutcome.first + " seats available, but required " + seats << endl;
+    else cout << bookingOutcome.second + " seats booked for flight " + flightId  << endl;
     
     pair<vector<sockaddr_in>, int> res = flightSystem.callUpdateService(flightId);
     vector<sockaddr_in> userIds = res.first;
@@ -463,7 +371,6 @@ void Handler::bookFlight(udp_server &server, char *p, int req_id, int status){
         // cout << userId << endl;
         doUpdateService(server, userId, flightId, remainingSeats, status);
     }
-    cout << "have you reached here" << endl;
 }
 
 void Handler::cancelFlight(udp_server &server, char *p, int req_id, int status){
@@ -501,9 +408,17 @@ void Handler::cancelFlight(udp_server &server, char *p, int req_id, int status){
     if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
     sendReply(server,header,response,responseSize);
     if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
-    if (cancelOutcome == -1) notify(server, "Flight not found", status);
-    else if (cancelOutcome == 0) notify(server, "No booking found for flight", status);
-    else notify(server, cancelOutcome + " seats cancelled for flight " + flightId , status);
+    if (cancelOutcome == -1) cout << "Flight not found" << endl;
+    else if (cancelOutcome == 0) cout << "No booking found for flight" << endl;
+    else cout << cancelOutcome + " seats cancelled for flight " + flightId  << endl;
+
+    pair<vector<sockaddr_in>, int> res = flightSystem.callUpdateService(flightId);
+    vector<sockaddr_in> userIds = res.first;
+    int remainingSeats = res.second;
+    for (auto& userId: userIds) {
+        // cout << userId << endl;
+        doUpdateService(server, userId, flightId, remainingSeats, status);
+    }
 }
 
 void Handler::registerUpdateService(udp_server &server, char *p, int req_id, int status){
@@ -549,8 +464,8 @@ void Handler::registerUpdateService(udp_server &server, char *p, int req_id, int
     if(status == 2) responses[{clientAddress,req_id}] = string(response,responseSize);
     sendReply(server,header,response,responseSize);
     if(status == 2) ackHandler(server, header, response, responseSize, responseID, status, clientAddress);
-    if (isRegistered) notify(server, "Registered for update service", status);
-    else notify(server, "Flight not found" , status);
+    if (isRegistered) cout << "Registered for update service" << endl;
+    else cout << "Flight not found" << endl;
 }
 
 void Handler::doUpdateService(udp_server &server, sockaddr_in cAddress, int flightId, int seats, int status){
@@ -580,68 +495,5 @@ void Handler::doUpdateService(udp_server &server, sockaddr_in cAddress, int flig
     server.send(header,HEADER_SIZE, cAddress, sizeof(cAddress));
     server.send(response, responseSize, cAddress, sizeof(cAddress));
 
-    // struct sockaddr_in clientAddress;
-    // bzero((char *) &clientAddress, sizeof(clientAddress));
-    // clientAddress.sin_family = AF_INET;
-    // clientAddress.sin_addr.s_addr = inet_addr(cAddress);
-
-
-    // server.send(response, responseSize, inet_addr(cAddress), sizeof(cAddress));
-    
     cout << "after ack handler" << endl;
-    // notify(server, "Sent flight update to " + cAddress, status);
 }
-
-// void Handler::sendReply(udp_server &server, char *header, char *response, int responseSize){   
-//     if(distribution(generator) > failureRate){
-//         server.send(header,HEADER_SIZE);
-//         server.send(response, responseSize);
-//         cout << ">>>>>>>>>>Response id " << utils::unmarshalInt(response) << " of length " << responseSize << " is sent\n";
-//     }
-//     else cout << "################################Failure simulated#####################################\n";
-// }
-
-// void Handler::ackHandler(udp_server &server, char *header, char *response, int responseSize, int responseID, int status, unsigned long cAddress){
-//     char ackHeader[HEADER_SIZE];
-
-//     for(int i=1; i!=limit+1; i++){
-
-//         cout << "WAITING FOR ACK HEADER (ack handler 1)\n";
-//         int n = server.receive_time(ackHeader,HEADER_SIZE,RECEIVE_TIMEOUT);
-
-//         if(n <= 0){
-//             cout << "Timeout!, resending response ... \n";
-//             sendReply(server,header,response,responseSize);
-//             continue;
-//         }
-
-//         int ackSize = utils::unmarshalInt(ackHeader);
-        
-//         char* ack = new char[ackSize];
-
-//         cout << "WAITING FOR ACK\n";
-//         n = server.receive_time(ack,ackSize,RECEIVE_TIMEOUT);
-
-//         if(n <= 0){
-//             cout << "Timeout!, resending response ... \n";
-//             sendReply(server,header,response,responseSize);
-//             continue;
-//         }
-
-//         char *x = ack;
-//         int ack_id = utils::unmarshalInt(x);
-//         x += ID_SIZE;
-
-//         if(ack_id == responseID) break;
-//         else if(status == 2 && checkAndSendOldResponse(server,cAddress,ack_id)){
-//             cout << "Old request ID received instead!\n";
-//             cout << "Old response sent..!\n";
-//             cout << "Waiting for ack again..\n";
-//             continue;
-//         }
-//         else{
-//             cout << "ID mismatch!\nACK ID: " << ack_id << "\nResponse ID: " << responseID << "\n";
-//             sendReply(server,header,response,responseSize);
-//         }
-//     }
-// }

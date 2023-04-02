@@ -48,9 +48,6 @@ class QueryAllFlights{
             case Constants.ACK:
                 if (debug) System.out.println("[DEBUG][QueryAllFlights][Successful response]");
 
-                System.out.println("Total response length is : " + response.length);
-                System.out.println("Current response length is : " + (response.length - ptr));
-
                 int flightCount = Utils.unmarshalInteger(response, ptr);
 
                 if (flightCount == 0) System.out.println("There are no flights!\n");

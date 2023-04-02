@@ -41,7 +41,7 @@ Options:
 ### Server (C++)
 ```
 cd server
-g++ -o server -std=c++11 main.cpp udp_server.cpp utils.cpp Handler.cpp AccountManager.cpp Account.cpp Admin.cpp Flight.cpp FlightSystem.cpp
+g++ -o server -std=c++11 main.cpp udp_server.cpp utils.cpp Handler.cpp Flight.cpp FlightSystem.cpp
 ./server <PORT> <MODE> <FAULT> <LIMIT>
 ```
 
