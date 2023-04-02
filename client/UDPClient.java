@@ -245,9 +245,10 @@ class UDPClient
                 System.out.println("3. Query flight you have booked.");
                 System.out.println("4. Query all flights.");
                 System.out.println("5. Book a flight.");
-                System.out.println("6. Cancel a flight.");
-                System.out.println("7. Register for flight update service.");
-                System.out.println("8. Exit.\n");
+                System.out.println("6. Cancel all booking.");
+                System.out.println("7. Cancel seats for a booking.");
+                System.out.println("8. Register for flight update service.");
+                System.out.println("9. Exit.\n");
                 System.out.print("You have entered: \n");
                 int option = Integer.parseInt(scanner.nextLine());
 
@@ -325,6 +326,19 @@ class UDPClient
                             if (packageByte.length > 0) {
                                 byte[] response = udpClient.sendAndReceive(packageByte, curID);
                                 CancelFlight.handleResponse(response, debug);
+                            }
+                        } catch (Exception e) {
+                            System.out.print(Constants.SEPARATOR);
+                            System.out.printf(e.getMessage());
+                            if (debug) throw(e);
+                        }
+                        break;
+                    case Constants.CANCEL_SINGLE_FLIGHT:
+                        try {
+                            packageByte = CancelSingleFlight.createMessage(scanner, curID);
+                            if (packageByte.length > 0) {
+                                byte[] response = udpClient.sendAndReceive(packageByte, curID);
+                                CancelSingleFlight.handleResponse(response, debug);
                             }
                         } catch (Exception e) {
                             System.out.print(Constants.SEPARATOR);

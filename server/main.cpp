@@ -70,6 +70,9 @@ void handleRequest(udp_server &server, Handler &handler){
         handler.cancelFlight(server,cur,req_id,status);
         break;
     case 7:
+        handler.cancelSingleBookings(server,cur,req_id,status);
+        break;
+    case 8:
         handler.registerUpdateService(server,cur,req_id,status);
         break;
     }

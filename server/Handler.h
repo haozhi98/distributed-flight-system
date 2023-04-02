@@ -34,6 +34,7 @@ class Handler{
     void queryAllFlights(udp_server &server, char *p, int req_id, int status);
     void bookFlight(udp_server &server, char *p, int req_id, int status);
     void cancelFlight(udp_server &server, char *p, int req_id, int status);
+    void cancelSingleBookings(udp_server &server, char *p, int req_id, int status);
     void registerUpdateService(udp_server &server, char *p, int req_id, int status);
     void doUpdateService(udp_server &server, sockaddr_in cAddress, int flightId, int seats, int status);
     bool checkAndSendOldResponse(udp_server &server, unsigned long cAddress, int req_id);

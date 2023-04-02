@@ -28,6 +28,7 @@ public:
 	vector<Flight> queryAllFlights();
 	pair<int,int> createBooking(unsigned long userId, int flightId, int seats);
 	int cancelBooking(unsigned long userId, int flightId);
+	int cancelSingleBooking(unsigned long userId, int flightId, int seatsToCancel);
 	bool registerUpdateService(sockaddr_in cAddr, int flightId, int monitorInterval);
     pair<vector<sockaddr_in>, int>  callUpdateService(int flightId);
 	FlightSystem();

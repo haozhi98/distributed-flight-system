@@ -37,8 +37,9 @@ class Constants{
     public static final int QUERY_ALL_FLIGHTS = 4;
     public static final int BOOK_FLIGHT = 5;
     public static final int CANCEL_FLIGHT = 6;
-    public static final int REGISTER_UPDATE_SERVICE = 7;
-    public static final int EXIT = 8;
+    public static final int CANCEL_SINGLE_FLIGHT = 7;
+    public static final int REGISTER_UPDATE_SERVICE = 8;
+    public static final int EXIT = 9;
 
     // Main UI Constant
     public static final String ERR_MSG = "Error: %s\n";

@@ -133,6 +133,27 @@ int FlightSystem::cancelBooking(unsigned long userId, int flightId){
     return 0;
 }
 
+int FlightSystem::cancelSingleBooking(unsigned long userId, int flightId, int seatsToCancel){
+    // if flight does not exists
+    if (flights.find(flightId) == flights.end()) {
+        return -1;
+    }
+    if (bookings.find(userId) != bookings.end() && bookings[userId].find(flightId) != bookings[userId].end()) {
+        int seats = bookings[userId][flightId];
+        if (seatsToCancel > seats) {
+            // all bookings cancelled
+            flights[flightId].addSeats(seats);
+            bookings[userId].erase(flightId);
+            return seats;
+        } else {
+            flights[flightId].addSeats(seatsToCancel);
+            bookings[userId][flightId] -= seatsToCancel;
+            return seatsToCancel;
+        }
+    }
+    return 0;
+}
+
 bool FlightSystem::registerUpdateService(sockaddr_in cAddr, int flightId, int monitorInterval){
     if (flights.find(flightId) == flights.end()) return false;
     

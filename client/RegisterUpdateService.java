@@ -1,6 +1,7 @@
 package client;
 
 import java.io.*;
+import java.time.Instant;
 import java.util.*;
 
 class RegisterUpdateService{
@@ -86,8 +87,15 @@ class RegisterUpdateService{
                 int seconds = Utils.unmarshalInteger(response, ptr)*1000;
                 ptr += Constants.INT_SIZE;
                 boolean isRegistered = Utils.unmarshalBool(response, ptr);
+                
+                long unixTime = Instant.now().getEpochSecond();
+                unixTime += seconds/1000;
+                
 
-                if (isRegistered) System.out.println("Successfully registered for update service!\n");
+                if (isRegistered) {
+                    System.out.println("Successfully registered for update service!\n");
+                    System.out.println("Service will expire at " + Instant.ofEpochSecond(unixTime));
+                }
                 else System.out.println("Flight not found!\n");
                 return seconds;
             default:
